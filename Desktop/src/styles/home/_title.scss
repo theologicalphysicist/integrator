@@ -1,0 +1,13 @@
+@use "../utils";
+
+header#title_area {
+    display: flex;
+    justify-content: center;
+    background-color: #fff;
+    // padding: 8px;
+    // border: utils.$debug-container;
+    h1 {
+        font-size: 1.25rem;
+    }
+    
+}
