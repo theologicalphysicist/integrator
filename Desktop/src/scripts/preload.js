@@ -1,8 +1,7 @@
 const { contextBridge, ipcRenderer } = require("electron");
+// require("dotenv").config()
 
-contextBridge.exposeInMainWorld("versions", {
-    node: process.versions.node,
-    chrome: process.versions.chrome,
-    electron: process.versions.electron,
-    bing: () => ipcRenderer.invoke("bing")
+contextBridge.exposeInMainWorld("renderer", {
+    bing: () => ipcRenderer.invoke("bing"),
+    EXPRESS_BACKEND_API_URL: process.env.EXPRESS_BACKEND_API_URL
 });

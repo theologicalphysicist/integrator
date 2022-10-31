@@ -1,0 +1,15 @@
+@use "../nav";
+@use "../utils";
+
+div#load_data {
+    width: 80%;
+    border: utils.$debug-container;
+    height: 50px;
+    display: block;
+    div#notion_section {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        border: utils.$debug-container;
+    }
+}

@@ -2,7 +2,7 @@ const NAVIGATION_BAR = document.getElementById("navigation_area");
 const NAV_IMAGE = NAVIGATION_BAR.innerHTML;
 
 const Navbar = (props) => {
-    var LINKS = "";
+    let LINKS = "";
     ["Home", "Productivity Tools", "Media Tools"].map((l) => {
     return (
         `
@@ -15,10 +15,10 @@ const Navbar = (props) => {
     
     return (
         `
-        <ul>
-            ${LINKS}
-            </ul>
-    `
+            <ul>
+                ${LINKS}
+                </ul>
+        `
     )
 }
 

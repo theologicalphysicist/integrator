@@ -6,7 +6,7 @@ import { NAVIGATION_BAR, NAV_IMAGE, Navbar } from "./global_renderer.js";
 // SELECTION_AREA.innerHTML = Selection();
 
 const pinger = async () => {
-    const res = await versions.bing();
+    const res = await renderer.bing();
     console.log(res);
 }
 
@@ -17,9 +17,9 @@ const HomePageRender = () => {
     NAVIGATION_BAR.innerHTML = NAV_IMAGE + Navbar({
         current: "Home",
         links: {
-            Home: "../../../pages/index.html",
-            Productivity: "../../../pages/productivity.html",
-            Media: "../../../pages/media.html",
+            Home: "../pages/index.html",
+            Productivity: "../pages/productivity.html",
+            Media: "../pages/media.html",
         }
     });
 

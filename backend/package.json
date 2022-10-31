@@ -1,0 +1,27 @@
+{
+  "name": "integrator-backend",
+  "version": "0.1.0",
+  "description": "backend for integrator app",
+  "main": "index.mjs",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon -r dotenv/config .\\index.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/theologicalphysicist/integrator.git#main"
+  },
+  "author": "senseigauss",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/theologicalphysicist/integrator/issues"
+  },
+  "homepage": "https://github.com/theologicalphysicist/integrator/tree/main#readme",
+  "dependencies": {
+    "@notionhq/client": "^2.2.1",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "typescript": "^4.8.4"
+  }
+}
