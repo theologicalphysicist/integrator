@@ -28,6 +28,7 @@
         "@types/keyv": "^4.2.0",
         "dotenv": "^16.0.3",
         "electron": "^21.2.0",
+        "electron-reload": "^2.0.0-alpha.1",
         "electron-reloader": "^1.2.3",
         "typescript": "^4.8.4"
     },
@@ -45,7 +46,6 @@
         "detect-node": "^2.1.0",
         "duplexer3": "^0.1.5",
         "electron-log": "^4.4.8",
-        "electron-reload": "^2.0.0-alpha.1",
         "encodeurl": "^1.0.2",
         "end-of-stream": "^1.4.4",
         "env-paths": "^2.2.1",

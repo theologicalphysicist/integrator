@@ -3,9 +3,9 @@ const Title = () => {
     
     return (
         `
-        <h1>${TITLE_TEXT}</h1>
+            <h1>${TITLE_TEXT}</h1>
         `
-        );
+    );
 }
         
 const IntroList = (OLI, ILI) => {

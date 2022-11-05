@@ -2,30 +2,56 @@ const {app, BrowserWindow, ipcMain} = require("electron");
 const path = require("path");
 const sass = require("sass");
 const fs = require("fs");
+const {setNewWatcher} = require("./src/scripts/watchers.cjs");
 
 if (process.env.NODE_ENV !== "production") {
     require("dotenv").config();
-    require("electron-reloader")(module);
+    // try {
+    //     require("electron-reloader")(module, {
+    //         debug: true,
+    //         watchRenderer: true
+    //     });
+    // } catch (_) {console.log(_)}
 }
 
 const loadCssPreprocessors = () => {
-    const home_res = sass.compile(path.join(__dirname, "./src/styles/home/home.scss"));
-    fs.writeFile(path.join(__dirname, "/src/styles/home/home.css"), home_res.css, (err) => {
-        console.log(err);
+    const home_res = sass.compile(path.join(__dirname, "/src/styles/scss/home/home.scss"));    
+    fs.writeFile(
+        path.join(__dirname, "/src/styles/home.css"), 
+        home_res.css, 
+        (err) => console.log(err)
+    );
+
+    const productivity_res = sass.compile(path.join(__dirname, "/src/styles/scss/productivity/productivity.scss"));
+    fs.writeFile(
+        path.join(__dirname, "/src/styles/productivity.css"), 
+        productivity_res.css, 
+        (err) => console.log(err)
+    );
+    // const media_res = sass.compile(path.join(__dirname, "./src/styles/media/media.scss"));
+    // fs.writeFile(path.join(__dirname, "/src/styles/media/media.css"), media_res.css, (err) => {
+    //     console.log(err);
+    // });
+}
+
+const setWatchers = () => {
+    setNewWatcher({
+        watcher_func: loadCssPreprocessors,
+        watcher_dir: path.join(__dirname, "/src/styles/scss"), 
+        update_file: path.join(__dirname, "/pages/index.html"), 
+        window: mainWindow
     });
-    const productivity_res = sass.compile(path.join(__dirname, "./src/styles/productivity/productivity.scss"));
-    fs.writeFile(path.join(__dirname, "/src/styles/productivity/productivity.css"), productivity_res.css, (err) => {
-        console.log(err);
-    });
-    const media_res = sass.compile(path.join(__dirname, "./src/styles/media/media.scss"));
-    fs.writeFile(path.join(__dirname, "/src/styles/media/media.css"), media_res.css, (err) => {
-        console.log(err);
+    setNewWatcher({
+        watcher_func: () => null,
+        watcher_dir: path.join(__dirname, "./pages"),
+        window: mainWindow
     });
 }
 
-
-const createWindow = () => {
-    const mainWindow = new BrowserWindow({
+let mainWindow;
+let watchers = [];
+const createWindow = async () => {
+    mainWindow = new BrowserWindow({
         width: 800,
         height: 600,
         webPreferences: {
@@ -45,7 +71,6 @@ const createWindow = () => {
             symbolColor: "#fff"
         },
     });
-
     mainWindow.loadFile("./pages/index.html");
     mainWindow.webContents.openDevTools();
     mainWindow.on("ready-to-show", () => {
@@ -53,7 +78,7 @@ const createWindow = () => {
         mainWindow.show();
     });
     ipcMain.handle("bing", () => "bong");
-    // window.log.info("Hello")
+    setWatchers();
 }
 
 app.whenReady().then(()  => {
@@ -61,6 +86,8 @@ app.whenReady().then(()  => {
     createWindow();
 
     app.on("activate", () => {
+        console.log("HELLO 7");
+        loadCssPreprocessors();
         if (BrowserWindow.getAllWindows().length === 0) {
             createWindow();
         }

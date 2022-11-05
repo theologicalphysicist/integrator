@@ -5,10 +5,10 @@ import { NAVIGATION_BAR, NAV_IMAGE, Navbar } from "./global_renderer.js";
 // const SELECTION_AREA = document.getElementById("selection_area");
 // SELECTION_AREA.innerHTML = Selection();
 
-const pinger = async () => {
-    const res = await renderer.bing();
-    console.log(res);
-}
+// const pinger = async () => {
+//     const res = await renderer.bing();
+//     console.log(res);
+// }
 
 const HomePageRender = () => {
     const TITLE_AREA = document.getElementById("title_area");
@@ -28,7 +28,7 @@ const HomePageRender = () => {
 
 }
 
-pinger();
+// pinger();
 HomePageRender();
 
 // const mainWindowLoad = () => {
