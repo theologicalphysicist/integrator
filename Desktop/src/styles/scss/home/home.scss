@@ -2,17 +2,23 @@
 @use "../nav";
 @use "../utils";
 
+body {
+    font-family: Ubuntu;
+}
+
 section#main_area {
     height: 100%;
     width: 100%;
-    // border: utils.$debug-container;
-    header {
-        // border: utils.$debug-container;
-    }
+    font-family: "Manjari Thin";
     div#intro_area {
-        padding: 0px 8px;
+        padding: 16px 16px;
         background-color: #fff;
         height: max-content;
+        width: 70%;
+        margin: auto;
+        border: utils.$debug-container;
+        border-radius: 4px;
+        box-shadow: 5px 5px #000;
         p {
             padding: 0px;
             margin: 0px;

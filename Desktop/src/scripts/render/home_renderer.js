@@ -1,5 +1,5 @@
-import {Title, IntroductionParagraph} from "../components/home.js";
-import { NAVIGATION_BAR, NAV_IMAGE, Navbar } from "./global_renderer.js";
+import {IntroductionParagraph} from "../components/home.js";
+import {Title, NAVIGATION_BAR, NAV_IMAGE, Navbar } from "./global_renderer.js";
 // const res = sass.compile("home.scss");
 
 // const SELECTION_AREA = document.getElementById("selection_area");
@@ -23,7 +23,7 @@ const HomePageRender = () => {
         }
     });
 
-    TITLE_AREA.innerHTML = Title();
+    TITLE_AREA.innerHTML = Title("Integrator");
     INTRO_AREA.innerHTML = IntroductionParagraph();
 
 }

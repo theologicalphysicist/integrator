@@ -43,4 +43,7 @@ const IntroductionParagraph = () => {
     )
 }
 
+const SelectionTab = (props) => {
+    return ``;
+}
 export {Title, IntroductionParagraph};

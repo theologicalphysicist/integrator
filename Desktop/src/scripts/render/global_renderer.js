@@ -1,6 +1,15 @@
 const NAVIGATION_BAR = document.getElementById("navigation_area");
 const NAV_IMAGE = NAVIGATION_BAR.innerHTML;
 
+const Title = (text) => {    
+    return (
+        `
+            <h1>${text}</h1>
+        `
+    );
+}
+
+
 const Navbar = (props) => {
     let LINKS = "";
     ["Home", "Productivity Tools", "Media Tools"].map((l) => {
@@ -15,11 +24,11 @@ const Navbar = (props) => {
     
     return (
         `
-            <ul>
-                ${LINKS}
-                </ul>
+        <ul>
+            ${LINKS}
+        </ul>
         `
     )
 }
 
-export {NAVIGATION_BAR, NAV_IMAGE, Navbar}
+export {NAVIGATION_BAR, NAV_IMAGE, Navbar, Title}

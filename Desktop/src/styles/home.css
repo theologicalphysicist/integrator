@@ -18,7 +18,7 @@ div#main {
   left: 0;
   width: 100%;
   height: 100%;
-  font-family: Calibri;
+  font-family: Calibri, NATS;
 }
 div#main nav#navigation_area {
   height: 4rem;
@@ -56,14 +56,24 @@ div#main nav#navigation_area a {
   cursor: pointer;
 }
 
+body {
+  font-family: Ubuntu;
+}
+
 section#main_area {
   height: 100%;
   width: 100%;
+  font-family: "Manjari Thin";
 }
 section#main_area div#intro_area {
-  padding: 0px 8px;
+  padding: 16px 16px;
   background-color: #fff;
   height: max-content;
+  width: 70%;
+  margin: auto;
+  border: 1px solid #000;
+  border-radius: 4px;
+  box-shadow: 5px 5px #000;
 }
 section#main_area div#intro_area p {
   padding: 0px;

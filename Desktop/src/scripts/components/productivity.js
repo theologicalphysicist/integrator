@@ -1,13 +1,21 @@
-const NotionSection = () => {
+const ProductivitySection = (props) => {
     return (
         `
-            <div id="notion_section">
-                <h2>Notion Integrations</h2>
-                <p>Fetch data from Notion</p>
-                <button id="notion_fetch">Fetch</button>
+            <div id="${props.sectionID}" class="productivity-section">
+                <h2>${props.appName} Integrations</h2>
+                <div class="image-container">
+                    <img src="../public/img/${props.appImage}" alt="${props.appName} logo">
+                </div>
+                <p>Fetch & view data from ${props.appName}</p>
+                <div class="button-container">
+                    <button id="${props.buttonID}">Fetch</button>
+                </div>
             </div>
         `
     )
 }
 
-export {NotionSection};
+const ProductivityRow = () => {
+
+}
+export {ProductivitySection};
