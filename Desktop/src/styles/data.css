@@ -1,0 +1,108 @@
+.current {
+  text-decoration: underline;
+}
+
+div#main {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  font-family: Calibri, NATS;
+}
+div#main nav#navigation_area {
+  height: 4rem;
+  padding: 0px 2rem;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background-color: #3f9bef;
+}
+div#main nav#navigation_area img {
+  width: 3rem;
+  height: 3rem;
+}
+div#main nav#navigation_area ul {
+  height: 3rem;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+div#main nav#navigation_area li {
+  list-style-type: none;
+  width: 50%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+div#main nav#navigation_area li:hover {
+  background-color: rgba(33, 109, 180, 0.7843137255);
+}
+div#main nav#navigation_area a {
+  font-size: 1.25rem;
+  color: #000;
+  cursor: pointer;
+}
+
+div#load_data {
+  width: 80%;
+  margin: auto;
+  padding: 16px;
+  display: block;
+  justify-content: space-around;
+}
+div#load_data div.productivity-row {
+  display: flex;
+  padding: 16px 0px;
+}
+div#load_data div.productivity-section {
+  display: block;
+  width: 40%;
+  padding: 8px;
+  height: max-content;
+  margin: auto;
+  border: 1px solid #000;
+  border-radius: 5px;
+  box-shadow: 5px 5px #3f9bef;
+}
+div#load_data div.productivity-section h2 {
+  margin: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+div#load_data div.productivity-section div.image-container {
+  width: 100%;
+  height: fit-content;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+div#load_data div.productivity-section div.image-container img {
+  width: 100px;
+  height: 100px;
+}
+div#load_data div.productivity-section p {
+  display: flex;
+  justify-content: center;
+  padding: 0px;
+  margin-top: 8px;
+  margin-bottom: 0px;
+}
+div#load_data div.productivity-section div.button-container {
+  width: 100%;
+  height: fit-content;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+div#load_data div.productivity-section div.button-container button {
+  border: none;
+  background-color: #3f9bef;
+  border-radius: 3px;
+  padding: 8px 16px;
+  font-size: 12px;
+}

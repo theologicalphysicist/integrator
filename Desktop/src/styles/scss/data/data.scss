@@ -1,0 +1,67 @@
+@use "../nav";
+@use "../utils";
+
+div#load_data {
+    width: 80%;
+    margin: auto;
+    padding: 16px;
+    // border: utils.$debug-container;
+    display: block;
+    justify-content: space-around;
+    div.productivity-row {
+        display: flex;
+        // border: utils.$debug-container;
+        padding: 16px 0px;
+    }
+    div.productivity-section {
+        display: block;
+        width: 40%;
+        padding: 8px;
+        height: max-content;
+        margin: auto;
+        border: utils.$debug-container;
+        border-radius: 5px;
+        box-shadow: 5px 5px utils.$main-colour;
+        h2 {
+            margin: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            // border: utils.$debug-container;
+        }
+        div.image-container {
+            width: 100%;
+            height: fit-content;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            img {
+                width: 100px;
+                height: 100px;
+            }
+        }
+        p {
+            display: flex;
+            justify-content: center;
+            // border: utils.$debug-container;
+            padding: 0px;
+            margin-top: 8px;
+            margin-bottom: 0px;
+        }
+        div.button-container {
+            width: 100%;
+            height: fit-content;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            button {
+                border: none;
+                background-color: utils.$main-colour;
+                border-radius: 3px;
+                padding: 8px 16px;
+                font-size: 12px;
+            }
+        }
+    }
+
+}

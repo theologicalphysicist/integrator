@@ -1,0 +1,27 @@
+@use "../utils";
+
+header {
+    display: flex;
+    justify-content: center;
+    // background-color: #fff;
+}
+
+h1 {
+    font-size: 1.75rem;
+}
+
+h2 {
+    font-size: 1.5em;
+}
+
+#main_title {
+
+}
+
+#productivity_selection_title, #media_selection_title {
+    margin-top: 0.5rem;
+    margin-bottom: 0rem;
+    padding: 0px;
+    // height: 1.5rem;
+    // border: utils.$debug-container;
+}
