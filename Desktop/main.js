@@ -21,9 +21,9 @@ const loadCssPreprocessors = () => {
         (err) => console.log(err)
     );
 
-    const productivity_res = sass.compile(path.join(__dirname, "/src/styles/scss/productivity/productivity.scss"));
+    const productivity_res = sass.compile(path.join(__dirname, "/src/styles/scss/data/data.scss"));
     fs.writeFile(
-        path.join(__dirname, "/src/styles/productivity.css"), 
+        path.join(__dirname, "/src/styles/data.css"), 
         productivity_res.css, 
         (err) => console.log(err)
     );

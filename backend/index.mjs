@@ -7,7 +7,7 @@ app.get("/", (req, res) => {
     res.send("HELLO");
 });
 
-app.get("/notion", async (req, res) => {
+app.get("/notion_uni_database", async (req, res) => {
     const NOTION_RESPONSE = await NotionFetch();
     // console.log(NOTION_RESPONSE);
     res.send(JSON.stringify(NOTION_RESPONSE, null, 2));

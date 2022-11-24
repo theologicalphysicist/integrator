@@ -1,13 +1,3 @@
-const Title = () => {
-    const TITLE_TEXT = "Integrator";
-    
-    return (
-        `
-            <h1>${TITLE_TEXT}</h1>
-        `
-    );
-}
-        
 const IntroList = (OLI, ILI) => {
     let inner_list = "";
     ILI.forEach((item) => inner_list += `<li>${item}</li>`)
@@ -43,7 +33,19 @@ const IntroductionParagraph = () => {
     )
 }
 
-const SelectionTab = (props) => {
-    return ``;
+const IntegrationSection = (props) => {
+    return (`
+        <div id="${props.sectionID}" class="integration-section">
+            <h2>${props.appName} Integrations</h2>
+            <div class="image-container">
+                <img src="../public/img/${props.appImage}" alt="${props.appName} logo">
+            </div>
+            <p>Fetch & view data from ${props.appName}</p>
+            <div class="button-container">
+                <button id="${props.buttonID}">Fetch</button>
+            </div>
+        </div>
+    `);
 }
-export {Title, IntroductionParagraph};
+
+export {IntroductionParagraph, IntegrationSection};
