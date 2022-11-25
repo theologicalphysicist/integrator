@@ -1,14 +1,16 @@
 const IntroList = (OLI, ILI) => {
     let inner_list = "";
-    ILI.forEach((item) => inner_list += `<li>${item}</li>`)
+    ILI.forEach((item) => inner_list += `<li>${item}</li>`);
 
-    return `<ul> 
-                <li>${OLI[0]}</li>
-                <ul>
-                    ${inner_list}
-                </ul>
-                <li>${OLI[1]}</li>
-            </ul>` 
+    return `
+        <ul> 
+            <li>${OLI[0]}</li>
+            <ul>
+                ${inner_list}
+            </ul>
+            <li>${OLI[1]}</li>
+        </ul>
+    `;
 }
 
 const IntroductionParagraph = () => {
@@ -25,12 +27,10 @@ const IntroductionParagraph = () => {
         "Microsoft To-do"
     ];
 
-    return (
-        `
-            <p>${PARAGRAPH_TEXT}</p>
-            ${IntroList(OUTER_LIST_ITEMS, INNER_LIST_ITEMS)}
-        `
-    )
+    return (`
+        <p>${PARAGRAPH_TEXT}</p>
+        ${IntroList(OUTER_LIST_ITEMS, INNER_LIST_ITEMS)}
+    `);
 }
 
 const IntegrationSection = (props) => {

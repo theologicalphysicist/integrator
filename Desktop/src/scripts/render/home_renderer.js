@@ -1,5 +1,5 @@
 import {IntroductionParagraph, IntegrationSection} from "../components/home.js";
-import {Title, NAVIGATION_BAR, NAV_IMAGE, Navbar } from "./global_renderer.js";
+import {Title, NAVIGATION_BAR, Navbar} from "./global_renderer.js";
 
 const TITLE_AREA = document.getElementById("main_title");
 const INTRO_AREA = document.getElementById("intro_area");
@@ -14,8 +14,12 @@ const DataFetchFunctions = () => {
         console.log(event);
         const res = await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/notion_uni_db`)
         .then((response) => response.json())
-        .then((data) => console.log(data));
+        .then((data) => {
+            return data;
+        });
         console.log(res);
+        localStorage.setItem("data_fetched", JSON.stringify(res, null, 2));
+        location.href = "../pages/data.html";
     }
 
     const POMODONE_FETCH_COMMAND = document.getElementById("pomodone_fetch");
@@ -24,13 +28,8 @@ const DataFetchFunctions = () => {
     }
 } 
 
-// const pinger = async () => {
-//     const res = await renderer.bing();
-//     console.log(res);
-// }
-
 const HomePageRender = () => {    
-    NAVIGATION_BAR.innerHTML = NAV_IMAGE + Navbar({
+    NAVIGATION_BAR.innerHTML += Navbar({
         current: "Home",
         links: {
             Home: "../pages/index.html",
@@ -103,7 +102,7 @@ const HomePageRender = () => {
             })}
             ${IntegrationSection({
                 sectionID: "itunes_section",
-                appName: "itunes",
+                appName: "iTunes",
                 appImage: "itunes-logo.png",
                 buttonID: "itunes_fetch"
             })}
@@ -112,9 +111,4 @@ const HomePageRender = () => {
     DataFetchFunctions();
 }
 
-// pinger();
 HomePageRender();
-
-// const mainWindowLoad = () => {
-
-// }

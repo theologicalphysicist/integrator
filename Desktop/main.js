@@ -63,7 +63,6 @@ const createWindow = async () => {
     mainWindow.center();
     mainWindow.loadFile("./pages/index.html");
     mainWindow.on("ready-to-show", () => {
-        // mainWindow.maximize();
         mainWindow.show();
     });
     ipcMain.handle("bing", () => "bong");

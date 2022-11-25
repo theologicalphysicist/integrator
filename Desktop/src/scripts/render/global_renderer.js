@@ -1,5 +1,4 @@
 const NAVIGATION_BAR = document.getElementById("navigation_area");
-const NAV_IMAGE = NAVIGATION_BAR.innerHTML;
 
 const Title = (text) => {    
     return (`
@@ -25,4 +24,4 @@ const Navbar = (props) => {
     `);
 }
 
-export {NAVIGATION_BAR, NAV_IMAGE, Navbar, Title}
+export {NAVIGATION_BAR, Navbar, Title}
