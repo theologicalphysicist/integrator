@@ -7,3 +7,5 @@ node_modules/
 *./css
 
 dist/
+
+web-api-auth-examples-master/

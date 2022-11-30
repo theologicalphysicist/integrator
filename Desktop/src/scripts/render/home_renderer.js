@@ -18,10 +18,20 @@ const DataFetchFunctions = () => {
         console.log(res);
     }
 
-    const POMODONE_FETCH_COMMAND = document.getElementById("pomodone_fetch");
-    POMODONE_FETCH_COMMAND.onclick = async (event) => {
+    const SPOTIFY_FETCH_COMMAND = document.getElementById("notion_fetch");
+    SPOTIFY_FETCH_COMMAND.onclick = async (event) => {
         console.log(event);
+        const res = await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/spotify`)
+        .then((response) => response.json())
+        .then((data) => console.log(data));
+        console.log(res);
     }
+
+
+    // const POMODONE_FETCH_COMMAND = document.getElementById("pomodone_fetch");
+    // POMODONE_FETCH_COMMAND.onclick = async (event) => {
+    //     console.log(event);
+    // }
 } 
 
 // const pinger = async () => {
