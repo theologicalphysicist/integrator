@@ -1,4 +1,4 @@
-const {app, BrowserWindow, ipcMain} = require("electron");
+const {app, BrowserWindow, ipcMain, BrowserView} = require("electron");
 const path = require("path");
 const sass = require("sass");
 const fs = require("fs");
@@ -36,9 +36,9 @@ const loadCssPreprocessors = () => {
     );
 }
 
-let mainWindow;
+let main_window;
 const createWindow = async () => {
-    mainWindow = new BrowserWindow({
+    main_window = new BrowserWindow({
         width: 800,
         height: 600,
         webPreferences: {
@@ -58,15 +58,20 @@ const createWindow = async () => {
             symbolColor: "#fff"
         },
     });
-    mainWindow.webContents.openDevTools();
-    mainWindow.setBounds({x: 1620, y: 1700, width: 1200, height: 600});
-    mainWindow.center();
-    mainWindow.loadFile("./pages/index.html");
-    mainWindow.on("ready-to-show", () => {
+    main_window.webContents.openDevTools();
+    main_window.setBounds({x: 1620, y: 1700, width: 1200, height: 600});
+    main_window.center();
+    main_window.loadFile("./pages/index.html");
+    main_window.on("ready-to-show", () => {
         // mainWindow.maximize();
-        mainWindow.show();
+        main_window.show();
     });
     ipcMain.handle("bing", () => "bong");
+    ipcMain.handle("SpotifyAuth", () => {
+        const spotofy_window = new BrowserView({
+            
+        });
+    });
 }
 
 app.whenReady().then(()  => {

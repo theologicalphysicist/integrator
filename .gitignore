@@ -5,3 +5,7 @@ node_modules/
 
 .vscode
 *./css
+
+dist/
+
+web-api-auth-examples-master/
