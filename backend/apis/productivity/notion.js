@@ -38,3 +38,33 @@ export const NotionFetch = async () => {
     }
     return data;
 }
+
+const ProcessNotionDBData = (data) => {
+    let items = [];
+    data.results.forEach((i) => {
+        // let item = {
+        //     title: i.title.text.content
+        // }
+        // console.log(i);
+        items.push({
+            title: i.title[0].plain_text,
+            properties: i.properties,
+            url: i.url
+        });
+        // console.log(i.properties);
+    });
+    // console.log({items});
+    return items;
+}
+
+export const getNotionDB = async () => {
+    const RES = await NOTION_CLIENT.search({
+        filter: {
+            value: "database",
+            property: "object"
+        }
+    });
+    const PROCESSED_RES = ProcessNotionDBData(RES);
+    return PROCESSED_RES;
+    // console.log(RES);
+}

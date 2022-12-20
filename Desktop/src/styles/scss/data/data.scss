@@ -9,6 +9,39 @@ div#load_data {
     // border: utils.$debug-container;
     display: block;
     justify-content: space-around;
+
+    //_ NOTION
+    div#database_grid {
+        width: 80%;
+        margin: auto;
+        padding: 0.5rem;
+        display: block;
+        div.database-grid-row {
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            padding: 0.5rem;
+            margin: auto;
+            div.database-tile:hover {
+                transform: scale(1.05);
+            }
+            div.database-tile {
+                width: 40%;
+                border: 1px solid utils.$notion-grey;
+                padding: 0.25rem;
+                border-radius: 5px;
+                box-shadow: 5px 5px utils.$notion-grey;
+                h2, p {
+                    display: flex;
+                    justify-content: center;
+                }
+                a {
+                    color: utils.$notion-grey;
+                    text-decoration: none;
+                }
+            }
+        }
+    }
     table#notion_table {
         width: 100%;
         display: block;
