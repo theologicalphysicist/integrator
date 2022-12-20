@@ -114,7 +114,7 @@ section#main_area div#productivity_selection_area div.integration-row, section#m
 section#main_area div#productivity_selection_area div.integration-row div.integration-section, section#main_area div#media_selection_area div.integration-row div.integration-section {
   display: block;
   width: 40%;
-  padding: 8px;
+  padding: 0.5rem;
   font-size: 1rem;
   height: max-content;
   margin: auto;

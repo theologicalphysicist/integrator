@@ -2,6 +2,9 @@ const {app, BrowserWindow, ipcMain, BrowserView} = require("electron");
 const path = require("path");
 const sass = require("sass");
 const fs = require("fs");
+const jsdom = require("jsdom");
+const shell = require("electron").shell;
+const { JSDOM } = jsdom;
 
 if (process.env.NODE_ENV !== "production") {
     require("dotenv").config();
@@ -63,14 +66,13 @@ const createWindow = async () => {
     main_window.center();
     main_window.loadFile("./pages/index.html");
     main_window.on("ready-to-show", () => {
-        // mainWindow.maximize();
         main_window.show();
     });
     ipcMain.handle("bing", () => "bong");
-    ipcMain.handle("SpotifyAuth", () => {
-        const spotofy_window = new BrowserView({
-            
-        });
+
+    ipcMain.on("SpotifyAuth", (event, url, filestring) => {
+        console.log(event);
+        shell.openExternal(url);
     });
 }
 

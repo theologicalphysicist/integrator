@@ -8,6 +8,7 @@ div#load_data {
     // border: utils.$debug-container;
     display: block;
     justify-content: space-around;
+    //_ NOTION
     div.productivity-row {
         display: flex;
         // border: utils.$debug-container;
@@ -64,4 +65,36 @@ div#load_data {
         }
     }
 
+    //_ SPOTIFY, iTUNES
+    div#playlist_grid {
+        width: 80%;
+        margin: auto;
+        padding: 0.5rem;
+        display: block;
+    }
+    div.playlist-grid-row {
+        width: 100%;
+        display: flex;
+        justify-content: space-around;
+        padding: 0.5rem;
+        margin: auto;
+        div.playlist-tile:hover {
+            transform: scale(1.05);
+        }
+        div.playlist-tile {
+            width: 40%;
+            border: 1px solid utils.$spotify-green;
+            padding: 0.25rem;
+            border-radius: 5px;
+            box-shadow: 5px 5px utils.$spotify-green;
+            img {
+                display: block;
+                margin: auto;
+            }
+            h2, p {
+                display: flex;
+                justify-content: center;
+            }
+        }
+    }
 }

@@ -106,3 +106,34 @@ div#load_data div.productivity-section div.button-container button {
   padding: 8px 16px;
   font-size: 12px;
 }
+div#load_data div#playlist_grid {
+  width: 80%;
+  margin: auto;
+  padding: 0.5rem;
+  display: block;
+}
+div#load_data div.playlist-grid-row {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  padding: 0.5rem;
+  margin: auto;
+}
+div#load_data div.playlist-grid-row div.playlist-tile:hover {
+  transform: scale(1.05);
+}
+div#load_data div.playlist-grid-row div.playlist-tile {
+  width: 40%;
+  border: 1px solid #1DB954;
+  padding: 0.25rem;
+  border-radius: 5px;
+  box-shadow: 5px 5px #1DB954;
+}
+div#load_data div.playlist-grid-row div.playlist-tile img {
+  display: block;
+  margin: auto;
+}
+div#load_data div.playlist-grid-row div.playlist-tile h2, div#load_data div.playlist-grid-row div.playlist-tile p {
+  display: flex;
+  justify-content: center;
+}
