@@ -19,7 +19,9 @@
   },
   "homepage": "https://github.com/theologicalphysicist/integrator/tree/main#readme",
   "dependencies": {
+    "@microsoft/microsoft-graph-client": "^3.0.4",
     "@notionhq/client": "^2.2.1",
+    "cross-fetch": "^3.1.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "typescript": "^4.8.4"
