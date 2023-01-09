@@ -42,4 +42,39 @@ const DataTable = (tableID, rowClass, data) => {
     `);
 }
 
-export {DataTable}
+const NotionDBTile = (database_datum) => {
+    return (`
+        <div class="database-tile">
+            <h2><a href=${database_datum.url} target="_blank">${database_datum.title}</a></h2>
+            <p>${Object.keys(database_datum.properties)}</p>
+        </div>
+    `);
+}
+
+const NotionDBGrid = (database_data, grid_id) => {
+    let database_tiles = "";
+    while (database_data.length > 0) {
+        if (database_data.length > 1) {
+            database_tiles += `
+                <div class="database-grid-row">
+                    ${NotionDBTile(database_data.shift())}
+                    ${NotionDBTile(database_data.shift())}
+                </div>
+            `;
+        } else {
+            database_tiles += `
+                <div class="database-grid-row">
+                    ${NotionDBTile(database_data.shift())}
+                </div>
+            `;
+        }
+    }
+    return (`
+        <div id="database_grid">
+            ${database_tiles}
+        </div>
+    `);
+
+}
+
+export {NotionDBGrid}

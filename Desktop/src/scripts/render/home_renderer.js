@@ -12,13 +12,10 @@ const DataFetchFunctions = () => {
     const NOTION_FETCH_COMMAND = document.getElementById("notion_fetch");
     NOTION_FETCH_COMMAND.onclick = async (event) => {
         console.log(event);
-        const res = await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/notion_uni_db`)
-        .then((response) => response.json())
-        .then((data) => {
-            return data;
-        });
+        const res = await (await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/notion_db`)).json();
         console.log(res);
-        localStorage.setItem("data_fetched", JSON.stringify(res, null, 2));
+        localStorage.setItem("recentFetch", "NOTION");
+        localStorage.setItem("NotionFetchData", JSON.stringify(res));
         location.href = "../pages/data.html";
     }
 
