@@ -21,21 +21,27 @@ const loadCssPreprocessors = () => {
     fs.writeFile(
         path.join(__dirname, "/src/styles/home.css"), 
         home_res.css, 
-        (err) => console.log(err)
+        (err) => {
+            if (err) {console.log(err)}
+        }
     );
 
     const productivity_res = sass.compile(path.join(__dirname, "/src/styles/scss/data/data.scss"));
     fs.writeFile(
         path.join(__dirname, "/src/styles/data.css"), 
         productivity_res.css, 
-        (err) => console.log(err)
+        (err) => {
+            if (err) {console.log(err)}
+        }
     );
 
     const media_res = sass.compile(path.join(__dirname, "./src/styles/scss/media/media.scss"));
     fs.writeFile(
         path.join(__dirname, "/src/styles/media.css"), 
         media_res.css, 
-        (err) => console.log(err)
+        (err) => {
+            if (err) {console.log(err)}
+        }
     );
 }
 
@@ -81,7 +87,6 @@ app.whenReady().then(()  => {
     createWindow();
 
     app.on("activate", () => {
-        console.log("HELLO 7");
         loadCssPreprocessors();
         if (BrowserWindow.getAllWindows().length === 0) {
             createWindow();

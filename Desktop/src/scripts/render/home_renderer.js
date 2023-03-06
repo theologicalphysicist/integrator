@@ -1,5 +1,5 @@
 import {IntroductionParagraph, IntegrationSection} from "../components/home.js";
-import {Title, NAVIGATION_BAR, NAV_IMAGE, Navbar } from "./global_renderer.js";
+import {Title, NAVIGATION_BAR, Navbar} from "./global_renderer.js";
 
 const TITLE_AREA = document.getElementById("main_title");
 const INTRO_AREA = document.getElementById("intro_area");
@@ -12,15 +12,15 @@ const DataFetchFunctions = () => {
     const NOTION_FETCH_COMMAND = document.getElementById("notion_fetch");
     NOTION_FETCH_COMMAND.onclick = async (event) => {
         console.log(event);
-        const res = await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/notion_uni_database`)
-        .then((response) => response.json())
-        .then((data) => console.log(data));
+        const res = await (await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/notion_db`)).json();
         console.log(res);
+        localStorage.setItem("recentFetch", "NOTION");
+        localStorage.setItem("NotionFetchData", JSON.stringify(res));
+        location.href = "../pages/data.html";
     }
 
     const SPOTIFY_FETCH_COMMAND = document.getElementById("spotify_fetch");
     SPOTIFY_FETCH_COMMAND.onclick = async (event) => {
-        console.log(event);
         const AUTH_RES = await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/spotify/?redirectURI=${renderer.EXPRESS_BACKEND_API_URL}/spotify_callback`, {
             method: "GET",
             mode: "cors",
@@ -30,7 +30,10 @@ const DataFetchFunctions = () => {
                 "Content-Type": "application/json"
             }
         });
+        window.open(AUTH_RES.url, "_blank");
+        console.log(AUTH_RES);
         const AUTH_RES_STATUS = await AUTH_RES.json();
+        console.log(AUTH_RES_STATUS);
         let spotify_tokens;
         if (AUTH_RES_STATUS.authStatus) {
             const TOKEN_RES = await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/spotify_tokens/?queryCode=${AUTH_RES_STATUS.queryCode}`, {
@@ -45,20 +48,9 @@ const DataFetchFunctions = () => {
             console.log("HERE");
             spotify_tokens = await TOKEN_RES.json();
             console.log("HERE");
-            localStorage.setItem("recentFetch", "Spotify");
+            localStorage.setItem("recentFetch", "SPOTIFY");
             localStorage.setItem("SpotifyTokens", JSON.stringify(spotify_tokens));
             localStorage.setItem("SpotifyQueryCode", AUTH_RES_STATUS.queryCode);
-            // const USER_RES = await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/spotify/?redirectURI=${renderer.EXPRESS_BACKEND_API_URL}/spotify_user_credentials`, {
-            //     method: "GET",
-            //     mode: "cors",
-            //     credentials: "include",
-            //     headers: {
-            //         Accept: "application/json",
-            //         "Content-Type": "application/json"
-            //     },
-            // });
-            // console.log(await USER_RES.json());
-            // localStorage.setItem("SpotifyCredentials", JSON.stringify(await USER_RES.json()));
             location.href = "./data.html";
         } else {
             console.log("AUTHORISATION UNSUCCESSFUL");
@@ -66,13 +58,8 @@ const DataFetchFunctions = () => {
     }
 } 
 
-// const pinger = async () => {
-//     const res = await renderer.bing();
-//     console.log(res);
-// }
-
 const HomePageRender = () => {    
-    NAVIGATION_BAR.innerHTML = NAV_IMAGE + Navbar({
+    NAVIGATION_BAR.innerHTML += Navbar({
         current: "Home",
         links: {
             Home: "../pages/index.html",
@@ -145,7 +132,7 @@ const HomePageRender = () => {
             })}
             ${IntegrationSection({
                 sectionID: "itunes_section",
-                appName: "itunes",
+                appName: "iTunes",
                 appImage: "itunes-logo.png",
                 buttonID: "itunes_fetch"
             })}
@@ -154,9 +141,4 @@ const HomePageRender = () => {
     DataFetchFunctions();
 }
 
-// pinger();
 HomePageRender();
-
-// const mainWindowLoad = () => {
-
-// }

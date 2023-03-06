@@ -2,7 +2,6 @@ import queryString from "querystring";
 import axios from "axios";
 import Request from "request";
 
-
 export const SPOTIFY_ACCOUNTS_URL = 'https://accounts.spotify.com';
 export const SPOTIFY_API_URL = 'https://api.spotify.com/v1';
 
@@ -16,14 +15,15 @@ export const generateRandomString = (length) => {
     return text;
 };
 
-export const AuthoriseUser = (req, res, state_str, redirect_URI) => {
-    res.redirect(`${SPOTIFY_ACCOUNTS_URL}/authorize?${queryString.stringify({
-        response_type: "code",
-        client_id: process.env.SPOTIFY_CLIENT_ID,
-        redirect_uri: redirect_URI,
-        scope: "playlist-read-private playlist-read-collaborative playlist-modify-private playlist-modify-public user-library-modify user-library-read user-read-email user-read-private",
-        state: state_str,
-    })}`);
+export const AuthoriseUser = (res, state_str, redirect_URI) => {
+    const QS = queryString.stringify({
+            response_type: "code",
+            client_id: process.env.SPOTIFY_CLIENT_ID,
+            redirect_uri: redirect_URI,
+            scope: process.env.SPOTIFY_SCOPES,
+            state: state_str,
+    });
+    res.redirect(302, `${SPOTIFY_ACCOUNTS_URL}/authorize?${QS}`);
 }
 
 export const getTokens = async (auth_options, res) => {

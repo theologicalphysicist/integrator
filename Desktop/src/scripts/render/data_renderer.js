@@ -1,16 +1,10 @@
-import { NAVIGATION_BAR, NAV_IMAGE, Navbar } from "./global_renderer.js";
-import * as components from "../components/data.js";
-// import info from "../../../public/info.jsonc";
+import { NAVIGATION_BAR, Navbar } from "./global_renderer.js";
+import {SpotifyPlaylistGrid, NotionDBGrid} from "../components/data.js";
 
 const LOAD_DATA_AREA = document.getElementById("load_data");
 
-const pinger = async () => {
-    const res = await renderer.bing();
-    console.log(res);
-}
-
-const DataPageRender = async () => {
-    NAVIGATION_BAR.innerHTML = NAV_IMAGE + Navbar({
+const DataPageRender = () => {
+    NAVIGATION_BAR.innerHTML += Navbar({
         current: "Data Page",
         links: {
             Home: "../pages/index.html",
@@ -19,13 +13,15 @@ const DataPageRender = async () => {
         }
     });
     switch (localStorage.getItem("recentFetch")) {
-        case "Spotify":
+        case "SPOTIFY":
             const TOKENS = localStorage.getItem("SpotifyTokens");
             console.log(typeof TOKENS);
             console.log(TOKENS);
-            await LoadSpotifyData();
+            LoadSpotifyData();
             break;
-        case "Notion":
+        case "NOTION":
+            const FETCHED = JSON.parse(localStorage.getItem("NotionFetchData"));
+            if (FETCHED) LOAD_DATA_AREA.innerHTML = NotionDBGrid(FETCHED, "database_grid");
             break;
     }
 }
@@ -43,10 +39,7 @@ const LoadSpotifyData = async () => {
     });
     const PLAYLIST_DATA = await PLAYLIST_RES.json();
     console.log(PLAYLIST_DATA);
-    LOAD_DATA_AREA.innerHTML = components.SpotifyPlaylistGrid(PLAYLIST_DATA, "playlist_grid");
-    
-    
+    LOAD_DATA_AREA.innerHTML = SpotifyPlaylistGrid(PLAYLIST_DATA, "playlist_grid");
 }
 
-// pinger();
-await DataPageRender();
+DataPageRender();

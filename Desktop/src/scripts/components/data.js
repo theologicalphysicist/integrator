@@ -3,6 +3,7 @@ const TableHead = (headers) => {
     for (const H of headers) {
         rows += `<th>${H}</th>`;
     }
+    console.log(rows);
     return (`
             <tr>
                 ${rows}
@@ -10,22 +11,17 @@ const TableHead = (headers) => {
     `);
 }
 
-const TableBodyRow = (data) => {
+const TableBodyRow = (data, rC) => {
     let rows = "";
     for (const d of data) {
+        console.log(d);
         rows += `
-            <tr>
-                <td>${d.imageURL}</td>
-                <td>${d.name}</td>
-                <td>${d.ownerName}</td>
-                <td>${d.length}</td>
-                <td>${d.type}</td>
-            </tr>
+            ${d}
         `;
     }
-    return (`
+    return `
         ${rows}
-    `);
+    `;
 }
 
 const SpotifyPlaylistTile = (playlist_datum, tile_class) => {
@@ -61,11 +57,58 @@ const SpotifyPlaylistGrid = (playlist_data, grid_id) => {
             `;
         }
     }
-    return (`
+    return `
         <div id=${grid_id}>
             ${playlist_tiles}
+        </div>
+    `;
+}
+
+const DataTable = (tableID, rowClass, data) => {
+    return (`
+        <table id=${tableID}>
+            <thead>
+                ${TableHead(Object.keys(data[0]))}
+            </thead>
+            <tbody>
+                ${TableBodyRow(rowClass, data)}
+            </tbody>
+        </table>
+    `);
+}
+
+const NotionDBTile = (database_datum) => {
+    return (`
+        <div class="database-tile">
+            <h2><a href=${database_datum.url} target="_blank">${database_datum.title}</a></h2>
+            <p>${Object.keys(database_datum.properties)}</p>
         </div>
     `);
 }
 
-export {SpotifyPlaylistGrid};
+const NotionDBGrid = (database_data, grid_id) => {
+    let database_tiles = "";
+    while (database_data.length > 0) {
+        if (database_data.length > 1) {
+            database_tiles += `
+                <div class="database-grid-row">
+                    ${NotionDBTile(database_data.shift())}
+                    ${NotionDBTile(database_data.shift())}
+                </div>
+            `;
+        } else {
+            database_tiles += `
+                <div class="database-grid-row">
+                    ${NotionDBTile(database_data.shift())}
+                </div>
+            `;
+        }
+    }
+    return (`
+        <div id=${grid_id}>
+            ${database_tiles}
+        </div>
+    `);
+}
+
+export {SpotifyPlaylistGrid, NotionDBGrid};
