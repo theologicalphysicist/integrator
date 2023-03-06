@@ -11,22 +11,57 @@ const TableHead = (headers) => {
     `);
 }
 
-const TableBodyRow = (rC, data) => {
+const TableBodyRow = (data, rC) => {
     let rows = "";
     for (const d of data) {
+        console.log(d);
         rows += `
-            <tr class=${rC}>
-                <td>${d.revisionType}</td>
-                <td>${d.deadline}</td>
-                <td>${d.module}</td>
-                <td>${d.state}</td>
-                <td>${d.name}</td>
-            </tr>
+            ${d}
         `;
     }
-    return (`
+    return `
         ${rows}
-    `);
+    `;
+}
+
+const SpotifyPlaylistTile = (playlist_datum, tile_class) => {
+    return (`
+        <div class=${tile_class}>
+            <img 
+                src=${playlist_datum.imageURL} 
+                alt="Playlist ${playlist_datum.name}, owned by ${playlist_datum.ownerName}"
+                width="100"
+                height="100"
+            >
+            <h2>${playlist_datum.name} by ${playlist_datum.ownerName}</h2>
+            <p>Number of songs = ${playlist_datum.length}</p>
+        </div>
+    `)
+}
+
+const SpotifyPlaylistGrid = (playlist_data, grid_id) => {
+    let playlist_tiles = "";
+    while (playlist_data.length > 0) {
+        if (playlist_data.length > 1) {
+            playlist_tiles += `
+                <div class="playlist-grid-row">
+                    ${SpotifyPlaylistTile(playlist_data.shift(), "playlist-tile")}
+                    ${SpotifyPlaylistTile(playlist_data.shift(), "playlist-tile")}
+                </div>
+            `;
+        } else if (playlist_data.length === 1) {
+            playlist_tiles += `
+                <div class="playlist-grid-row">
+                    ${SpotifyPlaylistTile(playlist_data.shift(), "playlist-tile")}
+                </div>
+            `;
+        }
+    }
+    return `
+        <div id=${grid_id}>
+            ${playlist_tiles}
+        </div>
+    `;
 }
 
 const DataTable = (tableID, rowClass, data) => {
@@ -70,11 +105,10 @@ const NotionDBGrid = (database_data, grid_id) => {
         }
     }
     return (`
-        <div id="database_grid">
+        <div id=${grid_id}>
             ${database_tiles}
         </div>
     `);
-
 }
 
-export {NotionDBGrid}
+export {SpotifyPlaylistGrid, NotionDBGrid};

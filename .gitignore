@@ -5,5 +5,4 @@ node_modules/
 
 .vscode
 
-.css
-*.css
+Desktop/src/styles/*.css

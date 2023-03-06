@@ -1,2 +1,2 @@
 # integrator
-tool (starting of as a desktop app) to integrate all my productivity and music applications
+tool (starting of as a desktop app) to integrate productivity applications (namely Notion, Github & Microsoft To-do)

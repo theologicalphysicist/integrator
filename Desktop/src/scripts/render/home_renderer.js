@@ -19,9 +19,42 @@ const DataFetchFunctions = () => {
         location.href = "../pages/data.html";
     }
 
-    const POMODONE_FETCH_COMMAND = document.getElementById("pomodone_fetch");
-    POMODONE_FETCH_COMMAND.onclick = async (event) => {
-        console.log(event);
+    const SPOTIFY_FETCH_COMMAND = document.getElementById("spotify_fetch");
+    SPOTIFY_FETCH_COMMAND.onclick = async (event) => {
+        const AUTH_RES = await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/spotify/?redirectURI=${renderer.EXPRESS_BACKEND_API_URL}/spotify_callback`, {
+            method: "GET",
+            mode: "cors",
+            credentials: "include",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json"
+            }
+        });
+        window.open(AUTH_RES.url, "_blank");
+        console.log(AUTH_RES);
+        const AUTH_RES_STATUS = await AUTH_RES.json();
+        console.log(AUTH_RES_STATUS);
+        let spotify_tokens;
+        if (AUTH_RES_STATUS.authStatus) {
+            const TOKEN_RES = await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/spotify_tokens/?queryCode=${AUTH_RES_STATUS.queryCode}`, {
+                method: "GET",
+                mode: "cors",
+                credentials: "include",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                },
+            });
+            console.log("HERE");
+            spotify_tokens = await TOKEN_RES.json();
+            console.log("HERE");
+            localStorage.setItem("recentFetch", "SPOTIFY");
+            localStorage.setItem("SpotifyTokens", JSON.stringify(spotify_tokens));
+            localStorage.setItem("SpotifyQueryCode", AUTH_RES_STATUS.queryCode);
+            location.href = "./data.html";
+        } else {
+            console.log("AUTHORISATION UNSUCCESSFUL");
+        }
     }
 } 
 

@@ -1,7 +1,10 @@
-const {app, BrowserWindow, ipcMain} = require("electron");
+const {app, BrowserWindow, ipcMain, BrowserView} = require("electron");
 const path = require("path");
 const sass = require("sass");
 const fs = require("fs");
+const jsdom = require("jsdom");
+const shell = require("electron").shell;
+const { JSDOM } = jsdom;
 
 if (process.env.NODE_ENV !== "production") {
     require("dotenv").config();
@@ -18,27 +21,33 @@ const loadCssPreprocessors = () => {
     fs.writeFile(
         path.join(__dirname, "/src/styles/home.css"), 
         home_res.css, 
-        (err) => console.log(err)
+        (err) => {
+            if (err) {console.log(err)}
+        }
     );
 
     const productivity_res = sass.compile(path.join(__dirname, "/src/styles/scss/data/data.scss"));
     fs.writeFile(
         path.join(__dirname, "/src/styles/data.css"), 
         productivity_res.css, 
-        (err) => console.log(err)
+        (err) => {
+            if (err) {console.log(err)}
+        }
     );
 
     const media_res = sass.compile(path.join(__dirname, "./src/styles/scss/media/media.scss"));
     fs.writeFile(
         path.join(__dirname, "/src/styles/media.css"), 
         media_res.css, 
-        (err) => console.log(err)
+        (err) => {
+            if (err) {console.log(err)}
+        }
     );
 }
 
-let mainWindow;
+let main_window;
 const createWindow = async () => {
-    mainWindow = new BrowserWindow({
+    main_window = new BrowserWindow({
         width: 800,
         height: 600,
         webPreferences: {
@@ -58,14 +67,19 @@ const createWindow = async () => {
             symbolColor: "#fff"
         },
     });
-    mainWindow.webContents.openDevTools();
-    mainWindow.setBounds({x: 1620, y: 1700, width: 1200, height: 600});
-    mainWindow.center();
-    mainWindow.loadFile("./pages/index.html");
-    mainWindow.on("ready-to-show", () => {
-        mainWindow.show();
+    main_window.webContents.openDevTools();
+    main_window.setBounds({x: 1620, y: 1700, width: 1200, height: 600});
+    main_window.center();
+    main_window.loadFile("./pages/index.html");
+    main_window.on("ready-to-show", () => {
+        main_window.show();
     });
     ipcMain.handle("bing", () => "bong");
+
+    ipcMain.on("SpotifyAuth", (event, url, filestring) => {
+        console.log(event);
+        shell.openExternal(url);
+    });
 }
 
 app.whenReady().then(()  => {
@@ -73,7 +87,6 @@ app.whenReady().then(()  => {
     createWindow();
 
     app.on("activate", () => {
-        console.log("HELLO 7");
         loadCssPreprocessors();
         if (BrowserWindow.getAllWindows().length === 0) {
             createWindow();

@@ -9,13 +9,58 @@ div#load_data {
     // border: utils.$debug-container;
     display: block;
     justify-content: space-around;
-
-    //_ NOTION
-    div#database_grid {
-        width: 80%;
-        margin: auto;
-        padding: 0.5rem;
+    //_ NOTION, MICROSOTF, GITHUB
+    div.productivity-section {
         display: block;
+        width: 40%;
+        padding: 8px;
+        height: max-content;
+        margin: auto;
+        border: utils.$debug-container;
+        border-radius: 5px;
+        box-shadow: 5px 5px utils.$main-colour;
+        h2 {
+            margin: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            // border: utils.$debug-container;
+        }
+        div.image-container {
+            width: 100%;
+            height: fit-content;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            img {
+                width: 100px;
+                height: 100px;
+            }
+        }
+        p {
+            display: flex;
+            justify-content: center;
+            // border: utils.$debug-container;
+            padding: 0px;
+            margin-top: 8px;
+            margin-bottom: 0px;
+        }
+        div.button-container {
+            width: 100%;
+            height: fit-content;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            button {
+                border: none;
+                background-color: utils.$main-colour;
+                border-radius: 3px;
+                padding: 8px 16px;
+                font-size: 12px;
+            }
+        }
+    }
+    div#database_grid{
         div.database-grid-row {
             width: 100%;
             display: flex;
@@ -72,6 +117,38 @@ div#load_data {
                     align-items: center;
                     width: 20%;
                 }
+            }
+        }
+    }
+    //_ SPOTIFY, iTUNES
+    div#playlist_grid {
+        width: 80%;
+        margin: auto;
+        padding: 0.5rem;
+        display: block;
+    }
+    div.playlist-grid-row {
+        width: 100%;
+        display: flex;
+        justify-content: space-around;
+        padding: 0.5rem;
+        margin: auto;
+        div.playlist-tile:hover {
+            transform: scale(1.05);
+        }
+        div.playlist-tile {
+            width: 40%;
+            border: 1px solid utils.$spotify-green;
+            padding: 0.25rem;
+            border-radius: 5px;
+            box-shadow: 5px 5px utils.$spotify-green;
+            img {
+                display: block;
+                margin: auto;
+            }
+            h2, p {
+                display: flex;
+                justify-content: center;
             }
         }
     }
