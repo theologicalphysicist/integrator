@@ -17,7 +17,7 @@ const DataFetchFunctions = () => {
         localStorage.setItem("recentFetch", "NOTION");
         localStorage.setItem("NotionFetchData", JSON.stringify(res));
         location.href = "../pages/data.html";
-    }
+    };
 
     const SPOTIFY_FETCH_COMMAND = document.getElementById("spotify_fetch");
     SPOTIFY_FETCH_COMMAND.onclick = async (event) => {
@@ -55,7 +55,17 @@ const DataFetchFunctions = () => {
         } else {
             console.log("AUTHORISATION UNSUCCESSFUL");
         }
-    }
+    };
+
+    const GITHUB_FETCH_COMMAND = document.getElementById("github_fetch");
+    GITHUB_FETCH_COMMAND.onclick = async (event) => {
+        console.log(event);
+        const RES = await (await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/github_repositories?username=theologicalphysicist`)).json();
+        console.log(RES);
+        localStorage.setItem("recentFetch", "GITHUB");
+        localStorage.setItem("GithubFetchData", JSON.stringify(RES));
+        location.href = "../pages/data.html";
+    };
 } 
 
 const HomePageRender = () => {    
@@ -92,31 +102,30 @@ const HomePageRender = () => {
             )}
         </div>
         <div class="integration-row">
-            ${IntegrationSection(
-                {
-                    sectionID: "focus_section",
-                    appName: "Focus Todo",
-                    appImage: "focus-logo.jpeg",
-                    buttonID: "focus_fetch"
-                }
-            )+ IntegrationSection(
-                {
-                    sectionID: "pomotodo_section",
-                    appName: "Pomotodo",
-                    appImage: "pomotodo-logo.jpeg",
-                    buttonID: "pomotodo_fetch"
-                }
-            )}
+            ${IntegrationSection({
+                sectionID: "focus_section",
+                appName: "Focus Todo",
+                appImage: "focus-logo.jpeg",
+                buttonID: "focus_fetch"
+            }) + IntegrationSection({
+                sectionID: "pomotodo_section",
+                appName: "Pomotodo",
+                appImage: "pomotodo-logo.jpeg",
+                buttonID: "pomotodo_fetch"
+            })}
         </div>
         <div class="integration-row">
-            ${IntegrationSection(
-                {
-                    sectionID: "todo_section",
-                    appName: "Microsoft Todo",
-                    appImage: "todo-logo.png",
-                    buttonID: "todo_fetch"
-                }
-            )}
+            ${IntegrationSection({
+                sectionID: "todo_section",
+                appName: "Microsoft Todo",
+                appImage: "todo-logo.png",
+                buttonID: "todo_fetch"
+            }) + IntegrationSection({
+                sectionID: "github_section",
+                appName: "Github",
+                appImage: "github-logo.png",
+                buttonID: "github_fetch"
+            })}
         </div>
     `;
     MEDIA_SELECTION_TITLE.innerHTML = `

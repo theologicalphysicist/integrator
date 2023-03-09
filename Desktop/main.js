@@ -48,12 +48,8 @@ const loadCssPreprocessors = () => {
 let main_window;
 const createWindow = async () => {
     main_window = new BrowserWindow({
-        width: 800,
-        height: 600,
         webPreferences: {
             preload: path.join(__dirname, "/src/scripts/preload.js"),
-            // devTools: true,
-            // plugins: true,
             minimumFontSize: 10
         },
         movable: true,
