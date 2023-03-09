@@ -33,6 +33,7 @@
     "got": "^12.5.3",
     "node-fetch": "^3.3.0",
     "nodemon": "^2.0.20",
+    "octokit": "^2.0.14",
     "qs": "^6.11.0",
     "querystring": "^0.2.1",
     "request": "^2.88.2",

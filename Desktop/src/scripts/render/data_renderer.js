@@ -67,7 +67,7 @@ const loadGithubRepositoryData = async (repo_names) => {
     repo_names.forEach((r_n) => {
         repo_query_string += `&repositories=${r_n}`;
     });
-    const LANGUAGES_RES = await (await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/github_repository_languages?username=theologicalphysicist${repo_query_string}`)).json();
+    const LANGUAGES_RES = await (await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/github_repository_languages?username=${renderer.GITHUB_USERNAME}${repo_query_string}`)).json();
     return LANGUAGES_RES
 };
 

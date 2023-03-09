@@ -19,4 +19,5 @@ contextBridge.exposeInMainWorld("renderer", {
     bing: () => ipcRenderer.invoke("bing"),
     SpotifyAuth: (url, filestring) => ipcRenderer.send("SpotifyAuth", url, filestring),
     EXPRESS_BACKEND_API_URL: process.env.EXPRESS_BACKEND_API_URL,
+    GITHUB_USERNAME: process.env.GITHUB_USERNAME
 });
