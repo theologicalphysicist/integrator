@@ -7,7 +7,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon -r dotenv/config ./index.mjs",
-    "ts_dev": "tsc -w & nodemon -r dotenv/config ."
+    "ts_dev": "tsc -w & nodemon -r dotenv/config .",
+    "start": "node dotenv/config ./index.mjs"
   },
   "repository": {
     "type": "git",
