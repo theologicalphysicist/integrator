@@ -88,6 +88,6 @@ app.get("/spotify_playlists", async (req, res) => {
 
 //_ MICROSOFT
 
-app.listen(process.env.PORT, () => {
-    console.log(`CORS-enabled Integrator App listening on port ${process.env.PORT}`);
+app.listen(process.env.PORT || 3000, () => {
+    console.log(`CORS-enabled Integrator App listening on port ${process.env.PORT || 3000}`);
 });
