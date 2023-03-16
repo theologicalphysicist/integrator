@@ -6,3 +6,7 @@ node_modules/
 .vscode
 
 Desktop/src/styles/*.css
+
+#- BACKEND
+*/dist/
+*/.parcel-cache/
