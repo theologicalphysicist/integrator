@@ -8,7 +8,9 @@
   "module": "dist/appES.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon -r dotenv/config ./index.mjs",
+    "local dev": "nodemon -r dotenv/config ./index.mjs dotenv_config_path='./.env.local' dotenv_config_debug=true",
+    "dev": "nodemon -r dotenv/config ./index.mjs dotenv_config_path='./.env.development' dotenv_config_debug=true",
+    "prod": "nodemon -r dotenv/config ./index.mjs dotenv_config_path='./.env.production'",
     "ts_dev": "tsc -w & nodemon -r dotenv/config .",
     "start": "node ./index.mjs",
     "build": "parcel build"
