@@ -1,19 +1,11 @@
-const {app, BrowserWindow, ipcMain, BrowserView} = require("electron");
+const {app, BrowserWindow, ipcMain, ipcRenderer} = require("electron");
 const path = require("path");
 const sass = require("sass");
 const fs = require("fs");
-const jsdom = require("jsdom");
-const shell = require("electron").shell;
-const { JSDOM } = jsdom;
+const opener = require("opener");
 
 if (process.env.NODE_ENV !== "production") {
     require("dotenv").config();
-    // try {
-    //     require("electron-reloader")(module, {
-    //         debug: true,
-    //         watchRenderer: true
-    //     });
-    // } catch (_) {console.log(_)}
 }
 
 const loadCssPreprocessors = () => {
@@ -52,8 +44,6 @@ const createWindow = async () => {
         height: 600,
         webPreferences: {
             preload: path.join(__dirname, "/src/scripts/preload.js"),
-            // devTools: true,
-            // plugins: true,
             minimumFontSize: 10
         },
         movable: true,
@@ -67,6 +57,7 @@ const createWindow = async () => {
             symbolColor: "#fff"
         },
     });
+
     main_window.webContents.openDevTools();
     main_window.setBounds({x: 1620, y: 1700, width: 1200, height: 600});
     main_window.center();
@@ -74,28 +65,42 @@ const createWindow = async () => {
     main_window.on("ready-to-show", () => {
         main_window.show();
     });
-    ipcMain.handle("bing", () => "bong");
 
-    ipcMain.on("SpotifyAuth", (event, url, filestring) => {
-        console.log(event);
-        shell.openExternal(url);
-    });
-}
+};
 
-app.whenReady().then(()  => {
+
+app.whenReady().then(async ()  => {
     loadCssPreprocessors();
-    createWindow();
+    await createWindow();
 
-    app.on("activate", () => {
+    ipcMain.on("SpotifyAuth", (event, filestring) => opener(filestring));
+
+    ipcMain.on("LeaveApp", (event) => app.quit());
+
+    app.on("activate", async () => {
         loadCssPreprocessors();
         if (BrowserWindow.getAllWindows().length === 0) {
-            createWindow();
-        }
+            await createWindow();
+        };
     });
+
 });
+
+
+app.on("before-quit", () => {
+
+});
+
+
 app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") app.quit();
+
+    if (process.platform !== "darwin") {
+        app.quit();
+    };
+    
 });
+
+
 app.on("session-created", (ses) => {
     // console.log({ses});
 });

@@ -27,13 +27,9 @@
         "@types/electron": "^1.6.10",
         "@types/keyv": "^4.2.0",
         "dotenv": "^16.0.3",
-        "electron": "^21.2.0",
-        "electron-reload": "^2.0.0-alpha.1",
-        "electron-reloader": "^1.2.3",
-        "typescript": "^4.8.4"
+        "electron": "^21.2.0"
     },
     "dependencies": {
-        "@notionhq/client": "^2.2.1",
         "boolean": "^3.2.0",
         "buffer-crc32": "^0.2.13",
         "cacheable-request": "^6.1.0",
@@ -83,6 +79,7 @@
         "npm-conf": "^1.1.3",
         "object-keys": "^1.1.1",
         "once": "^1.4.0",
+        "opener": "^1.5.2",
         "p-cancelable": "^1.1.0",
         "pend": "^1.2.0",
         "pify": "^3.0.0",
