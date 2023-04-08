@@ -17,7 +17,7 @@ const createSession = () => {
     };
 };
 
-let current_session = createSession();
+let current_session = {};
 
 contextBridge.exposeInMainWorld("renderer", {
     SpotifyAuth: (filestring) => ipcRenderer.send("SpotifyAuth", filestring),
@@ -26,6 +26,8 @@ contextBridge.exposeInMainWorld("renderer", {
 });
 
 contextBridge.exposeInMainWorld("sessions", {
-    session: () => {return current_session},
-    setSession: (new_session) => {current_session = new_session}
+    session: () => current_session,
+    setSession: (new_session) => {
+        current_session = new_session
+    }
 });

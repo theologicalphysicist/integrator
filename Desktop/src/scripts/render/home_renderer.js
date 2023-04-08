@@ -28,6 +28,8 @@ const DataFetchFunctions = () => {
             .then((res) => {
                 console.log(res);
                 renderer.SpotifyAuth(res);
+                localStorage.setItem("recentFetch", "SPOTIFY");
+                // location.href = "../pages/data.html";
             });
     };
 };
@@ -35,7 +37,8 @@ const DataFetchFunctions = () => {
 
 const HomePageRender = async () => {
     const INIT_RES = await (await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/init`)).json();
-    sessions.setSession({sessionID: INIT_RES.res.data});
+    sessions.setSession({sessionID: INIT_RES.id, cookies: INIT_RES.cookies});
+    console.log(sessions.session());
     
     NAVIGATION_BAR.innerHTML += Navbar({
         current: "Home",
