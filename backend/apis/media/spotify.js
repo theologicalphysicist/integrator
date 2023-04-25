@@ -5,7 +5,7 @@ import { SPOTIFY_ACCOUNTS_INSTANCE, SPOTIFY_API_INSTANCE } from "../clients.js";
 import { SPOTIFY_API_URL } from "../../utils.js";
 
 export const getTokens = async (code, client_id, client_secret, redirect_uri) => {
-    let token_response;
+    let token_response = {};
 
     await SPOTIFY_ACCOUNTS_INSTANCE(client_id, client_secret).request({
         method: "post",
@@ -43,25 +43,36 @@ const ProcessPlaylists = (res) => {
 };
 
 
-export const getPlaylists = async (client_id, client_secret, auth) => {
-    let playlist_response = {};
+export const getPlaylists = async (token_type, token) => {
+    let playlist_response = [];
+    let finished = false;
+    let playlist_params = {
+        limit: 50,
+        offset: 0
+    };
 
-    await SPOTIFY_API_INSTANCE(client_id, client_secret).request({
-        method: "get",
-        url: "/me/playlists",
-        headers: {
-            "Authorization": `${auth}`
-        },
-        params: {
-            limit: 50,
-            offset: 0
-        },
-    }).then((res) => { 
-        playlist_response = ProcessPlaylists(res.data.items);
-    }).catch((err) => {
-        console.log(`ERROR: ${err}`);
-        playlist_response = {err};
-    });
+    while (!finished) {
+        await SPOTIFY_API_INSTANCE(token_type, token).request({
+            method: "get",
+            url: "/me/playlists",
+            params: playlist_params,
+        }).then((res) => { 
+            playlist_response = [...playlist_response, ...ProcessPlaylists(res.data.items)];
+
+            if (res.data.next == null) {
+                finished = true;
+            } else {
+                const NEXT_PARAMS = queryString.parseUrl(res.data.next).query;
+                playlist_params.offset = NEXT_PARAMS.offset;
+            };
+
+        }).catch((err) => {
+            console.log(`ERROR: ${err}`);
+            playlist_response = {err};
+        });
+
+    }
+
 
     return playlist_response;
 };

@@ -24,21 +24,21 @@ const DataFetchFunctions = () => {
 
     const SPOTIFY_FETCH_COMMAND = document.getElementById("spotify_fetch");
     SPOTIFY_FETCH_COMMAND.onclick = async (event) => {
-        (await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/spotify_authorization?sessionID=${sessions.session().sessionID}`)).text()
-            .then((res) => {
-                console.log(res);
-                renderer.SpotifyAuth(res);
-                localStorage.setItem("recentFetch", "SPOTIFY");
-                // location.href = "../pages/data.html";
-            });
+        const AUTH_URL = await (await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/spotify_authorization?sessionID=${localStorage.getItem("sessionID")}`)).text();
+        console.log(AUTH_URL);
+
+        const AUTH_RES = await (await fetch(AUTH_URL)).text();
+        localStorage.setItem("recentFetch", "SPOTIFY");
+        renderer.SpotifyAuth(AUTH_RES, AUTH_URL, localStorage.getItem("sessionID"));
     };
 };
 
 
 const HomePageRender = async () => {
     const INIT_RES = await (await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/init`)).json();
-    sessions.setSession({sessionID: INIT_RES.id, cookies: INIT_RES.cookies});
-    console.log(sessions.session());
+    console.log(INIT_RES);
+    localStorage.setItem("sessionID", INIT_RES.id);
+    // console.log(sessions.session());
     
     NAVIGATION_BAR.innerHTML += Navbar({
         current: "Home",
@@ -123,6 +123,7 @@ const HomePageRender = async () => {
 
     EXIT_BUTTON.onclick = async (event) => {
         const END_SESSION_RES = await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/exit?sessionID=${sessions.session().sessionID}`);
+        localStorage.clear();
         //TODO EXCEPTION HANDLING HERE!
         renderer.LeaveApp();
     };

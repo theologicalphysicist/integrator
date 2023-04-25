@@ -33,13 +33,8 @@ const DataPageRender = () => {
 
 
 const LoadSpotifyData = async () => {
-    console.log(sessions.session());
-    const TOKENS_AVAILABLE = setInterval(async () => {
-        const AVAILABLE_RES = await (await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/spotify_tokens_available/?sessionID=${sessions.session().sessionID}`)).json();
-        
-    });
 
-    const PLAYLIST_RES = await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/spotify_playlists/?sessionID=${sessions.session().sessionID}`, {
+    const PLAYLIST_RES = await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/spotify_playlists/?sessionID=${localStorage.getItem("sessionID")}`, {
         method: "GET",
         mode: "cors",
         credentials: "include",

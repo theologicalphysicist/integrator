@@ -1,31 +1,25 @@
 import Express from "express";
 
-import path from "path";
-import { fileURLToPath } from "url";
 import queryString from "query-string";
-import { LocalStorage } from "node-localstorage";
-import { MongoClient, ObjectId } from "mongodb";
 import { v4 as uuidv4 } from "uuid";
+import EventEmitter from "node:events";
 
 //- MIDDLEWARE
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import session from "express-session";
+import bodyParser from "body-parser";
 import MongoStore from "connect-mongo";
 
 //- LOCAL
+import { SPOTIFY_ACCOUNTS_URL, MONGODB_URL } from "./utils.js";
+import { MONGODB_CLIENT } from "./apis/clients.js";
 import {getTokens, getPlaylists} from "./apis/media/spotify.js"
 import {NotionFetch, getNotionDB} from "./apis/productivity/notion.js";
 
-import { generateRandomString, MONGODB_URL, SPOTIFY_ACCOUNTS_URL } from "./utils.js";
-import { MONGODB_CLIENT } from "./apis/clients.js";
-
-// const FILENAME = fileURLToPath(import.meta.url);
-// const DIRNAME = path.dirname(FILENAME);
-
 //_ MIDDLEQARE
-const LOCAL_STORAGE = new LocalStorage("./scratch");
+
 
 const STORE = MongoStore.create({
     mongoUrl: MONGODB_URL(process.env.MONGODB_USER, process.env.MONGODB_PASSWORD),
@@ -39,6 +33,8 @@ const app = Express();
 app.use(cors());
 app.use(morgan("dev"));
 app.use(Express.static("./public"));
+app.use(bodyParser.json());
+app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(session({
     genid: (req) => uuidv4(),
     name: "user_session",
@@ -50,7 +46,9 @@ app.use(session({
         maxAge: 1000 * 60 * 60 * 24, //* 1 day in millisecs
     }
 }));
-// app.use(cookieParser(process.env.SESSION_SECRET));
+
+//* long-polling to handle spotify tokens
+const SPOTIFY_TOKENS_AVAILABLE = new EventEmitter();
 
 //_ SERVER
 app.get("/", (req, res) => {
@@ -141,7 +139,8 @@ app.get("/notion_uni_db", async (req, res) => {
 app.get("/spotify_authorization", async (req, res) => {
 
     if (process.env.SPOTIFY_CLIENT_ID && req.query.sessionID) {
-        res.status(302).send(`${SPOTIFY_ACCOUNTS_URL}/authorize?${queryString.stringify({
+
+        res.send(`${SPOTIFY_ACCOUNTS_URL}/authorize?${queryString.stringify({
                 response_type: "code",
                 client_id: process.env.SPOTIFY_CLIENT_ID,
                 redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
@@ -150,16 +149,7 @@ app.get("/spotify_authorization", async (req, res) => {
                 state: req.query.sessionID
             })}`
         );
-        // res.redirect(`${SPOTIFY_ACCOUNTS_URL}/authorize?${queryString.stringify({
-        //         response_type: "code$",
-        //         client_id: process.env.SPOTIFY_CLIENT_ID,
-        //         redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
-        //         scope: process.env.SPOTIFY_SCOPES,
-        //         show_dialog: true,
-        //         state: req.query.sessionID
-        //     })}`
-        // );
-        //! NOTE THAT THIS METHOD WILL CAUSE ISSUES IF ACCESSING FROM A SITE INSTEAD OF DESKTOP
+        //! NOTE THAT THIS METHOD MAY CAUSE ISSUES IF ACCESSING FROM A SITE INSTEAD OF DESKTOP
     } else {
         res.status(500).send("SERVER ERROR");
     };
@@ -169,34 +159,30 @@ app.get("/spotify_authorization", async (req, res) => {
 
 app.get("/spotify_callback", async (req, res) => {
 
-    if (req.query.code) {
+    if (req.query.code && req.query.state) {
+
         const TOKEN_RES = await getTokens(
-                req.query.code, 
-                process.env.SPOTIFY_CLIENT_ID, 
-                process.env.SPOTIFY_CLIENT_SECRET, 
-                process.env.SPOTIFY_REDIRECT_URI
+            req.query.code, 
+            process.env.SPOTIFY_CLIENT_ID, 
+            process.env.SPOTIFY_CLIENT_SECRET, 
+            process.env.SPOTIFY_REDIRECT_URI
         );
 
-        //TODO: ADD STATE CHECK
-
-        if (TOKEN_RES === "ERROR") {
-            res.status(500).send("SERVER ERROR");
-        } else {
-            req.sessionStore.get(req.query.state, (err, sess) => {
-                if (err) throw err;
-                req.sessionStore.set(req.query.state, {
-                    ...sess,
-                    spotify: {
-                        accessToken: TOKEN_RES.access_token,
-                        scope: TOKEN_RES.scope,
-                        expiryTime: TOKEN_RES.expires_in,
-                        refreshToken: TOKEN_RES.refresh_token,
-                        tokenType: TOKEN_RES.token_type
-                    }
-                });
+        req.sessionStore.get(req.query.state, (err, sess) => {
+            if (err) throw err;
+            req.sessionStore.set(req.query.state, {
+                ...sess,
+                spotify: {
+                    accessToken: TOKEN_RES.access_token,
+                    scope: TOKEN_RES.scope,
+                    expiryTime: TOKEN_RES.expires_in,
+                    refreshToken: TOKEN_RES.refresh_token,
+                    tokenType: TOKEN_RES.token_type
+                }
             });
-            res.redirect("./index.html");
-        };
+            SPOTIFY_TOKENS_AVAILABLE.emit("tokens-available", req.query.state);
+        });
+        res.redirect("index.html");
     } else {
         res.status(500).send("SERVER ERROR");
     };
@@ -204,53 +190,36 @@ app.get("/spotify_callback", async (req, res) => {
 });
 
 
-app.get("/spotify_tokens_available", async (req, res) => {
-    if (req.query.sessionID) {
-        res.send(LOCAL_STORAGE[req.query.sessionID]);
-        LOCAL_STORAGE.removeItem(req.query.sessionID);
-    } else {
-        res.status(500).send("SERVER ERROR");
+app.get("/spotify_tokens", async (req, res) => {
+
+    const HANDLE_RES = (data) => {
+        res.json("YES!");
+        SPOTIFY_TOKENS_AVAILABLE.removeListener("tokens-available", HANDLE_RES);
     };
+
+    SPOTIFY_TOKENS_AVAILABLE.on("tokens-available", HANDLE_RES);
+
 });
 
 
 app.get("/spotify_playlists", async (req, res) => {
 
     if (!req.query.sessionID) {
+
         res.status(500).send("SERVER ERROR") //! CHANGE THIS LATER!
+
     } else {
 
-        let auth_string = "";
+        req.sessionStore.get(req.query.sessionID, async (err, sess) => {
+            if (err) throw err;
 
-        const GETTING_TOKENS = setInterval(() => {
-            req.sessionStore.get(req.query.sessionID, (err, sess) => {
-                if (err) throw err;
-                auth_string = `${sess.spotify.tokenType} ${sess.spotify.accessToken}`;
-            });
-            if (auth_string !== "") clearInterval(GETTING_TOKENS);
-            console.log("here");
-        }, 1000);
+            const PLAYLIST_RES = await getPlaylists(
+                sess.spotify.tokenType,
+                sess.spotify.accessToken
+            );
 
-        const PLAYLIST_RES = await getPlaylists(
-            process.env.SPOTIFY_CLIENT_ID, 
-            process.env.SESSION_SECRET, 
-            auth_string
-        );
-
-        res.send(PLAYLIST_RES);
-
-
-        // while (!flag) {
-        //     req.sessionStore.get(req.query.sessionID, (err, sess) => {
-        //         if (err) throw err;
-        //         if (sess.spotify) flag = true;
-        //         auth_string = `${sess.spotify.tokenType} ${sess.spotify.accessToken}`;
-        //     });
-        //     console.log({flag});
-        //     console.log("here");
-        // };
-        // req.sessionStore.
-
+            res.send(PLAYLIST_RES);
+        });
 
     };
 

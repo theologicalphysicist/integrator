@@ -20,14 +20,10 @@ const createSession = () => {
 let current_session = {};
 
 contextBridge.exposeInMainWorld("renderer", {
-    SpotifyAuth: (filestring) => ipcRenderer.send("SpotifyAuth", filestring),
+    SpotifyAuth: (html_page, page_url, session_id) => ipcRenderer.send("SpotifyAuth", html_page, page_url, session_id),
     EXPRESS_BACKEND_API_URL: process.env.EXPRESS_BACKEND_API_URL,
     LeaveApp: () => ipcRenderer.send("LeaveApp")
 });
 
-contextBridge.exposeInMainWorld("sessions", {
-    session: () => current_session,
-    setSession: (new_session) => {
-        current_session = new_session
-    }
-});
+//! ipcRenderer.send => called by renderer, defined & ran in main.
+//! ipcRenderer.on => send & called in main, defined & ran in renderer.

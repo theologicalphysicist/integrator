@@ -1,6 +1,6 @@
 import axios from "axios";
-import { MongoClient, ServerApiVersion } from "mongodb";
-import { SPOTIFY_ACCOUNTS_URL, SPOTIFY_API_URL, MONGODB_URL } from "../utils.js";
+import { MongoClient } from "mongodb";
+import { SPOTIFY_ACCOUNTS_URL, SPOTIFY_API_URL } from "../utils.js";
 
 export const SPOTIFY_ACCOUNTS_INSTANCE = (client_id, client_secret) => axios.create({
     baseURL: SPOTIFY_ACCOUNTS_URL,
@@ -11,11 +11,10 @@ export const SPOTIFY_ACCOUNTS_INSTANCE = (client_id, client_secret) => axios.cre
     responseType: "json"
 });
 
-export const SPOTIFY_API_INSTANCE = (client_id, client_secret) => axios.create({
+export const SPOTIFY_API_INSTANCE = (token_type, token) => axios.create({
     baseURL: SPOTIFY_API_URL,
     headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Basic ${Buffer.from(client_id + ":" + client_secret).toString("base64")}`,
+        Authorization: `${token_type} ${token}`,
     },
     responseType: "json"
 });
