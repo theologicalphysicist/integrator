@@ -11,6 +11,12 @@ const MEDIA_SELECTION_AREA = document.getElementById("media_selection_area");
 const EXIT_BUTTON = document.getElementById("exit_app");
 
 
+renderer.LeaveApp((event) => {
+    localStorage.clear();
+});
+
+
+
 const DataFetchFunctions = () => {
     const NOTION_FETCH_COMMAND = document.getElementById("notion_fetch");
     NOTION_FETCH_COMMAND.onclick = async (event) => {
@@ -125,7 +131,6 @@ const HomePageRender = async () => {
         const END_SESSION_RES = await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/exit?sessionID=${sessions.session().sessionID}`);
         localStorage.clear();
         //TODO EXCEPTION HANDLING HERE!
-        renderer.LeaveApp();
     };
 
     DataFetchFunctions();

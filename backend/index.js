@@ -15,7 +15,7 @@ import MongoStore from "connect-mongo";
 //- LOCAL
 import { SPOTIFY_ACCOUNTS_URL, MONGODB_URL } from "./utils.js";
 import { MONGODB_CLIENT } from "./apis/clients.js";
-import {getTokens, getPlaylists} from "./apis/media/spotify.js"
+import {getAuthCode, getPlaylists, refreshToken} from "./apis/media/spotify.js"
 import {NotionFetch, getNotionDB} from "./apis/productivity/notion.js";
 
 //_ MIDDLEQARE
@@ -58,7 +58,7 @@ app.get("/", (req, res) => {
 
 app.get("/cookie_test", async (req, res) => {
     console.log(req.headers.cookie);
-    res.send(new Promise((resolve) => resolve.toString()));
+    res.send({result: true});
 });
 
 
@@ -161,7 +161,7 @@ app.get("/spotify_callback", async (req, res) => {
 
     if (req.query.code && req.query.state) {
 
-        const TOKEN_RES = await getTokens(
+        const TOKEN_RES = await getAuthCode(
             req.query.code, 
             process.env.SPOTIFY_CLIENT_ID, 
             process.env.SPOTIFY_CLIENT_SECRET, 
@@ -175,7 +175,7 @@ app.get("/spotify_callback", async (req, res) => {
                 spotify: {
                     accessToken: TOKEN_RES.access_token,
                     scope: TOKEN_RES.scope,
-                    expiryTime: TOKEN_RES.expires_in,
+                    expiryTime: (TOKEN_RES.expires_in * 1000) + Date.now(),
                     refreshToken: TOKEN_RES.refresh_token,
                     tokenType: TOKEN_RES.token_type
                 }
@@ -213,10 +213,33 @@ app.get("/spotify_playlists", async (req, res) => {
         req.sessionStore.get(req.query.sessionID, async (err, sess) => {
             if (err) throw err;
 
-            const PLAYLIST_RES = await getPlaylists(
-                sess.spotify.tokenType,
-                sess.spotify.accessToken
-            );
+            let token_type = sess.spotify.tokenType;
+            let access_token = sess.spotify.accessToken;
+
+            if (sess.spotify.expiryTime <= Date.now()) {
+                //* i.e., the tokens have expired, since "now" is after the expiry date.
+                const NEW_TOKENS = await refreshToken(
+                    sess.spotify.refreshToken,
+                    process.env.SPOTIFY_CLIENT_ID, 
+                    process.env.SPOTIFY_CLIENT_SECRET
+                );
+
+                token_type = NEW_TOKENS.token_type;
+                access_token = NEW_TOKENS.access_token;
+
+                req.sessionStore.set(req.query.sessionID, {
+                    ...sess,
+                    spotify: {
+                        accessToken: access_token,
+                        scope: NEW_TOKENS.scope,
+                        expiryTime: (NEW_TOKENS.expires_in * 1000) + Date.now(),
+                        refreshToken: sess.spotify.refreshToken,
+                        tokenType: token_type
+                    }
+                });
+            };
+
+            const PLAYLIST_RES = await getPlaylists(token_type, access_token);
 
             res.send(PLAYLIST_RES);
         });

@@ -18,9 +18,6 @@ const DataPageRender = () => {
 
     switch (localStorage.getItem("recentFetch")) {
         case "SPOTIFY":
-            const TOKENS = localStorage.getItem("SpotifyTokens");
-            console.log(typeof TOKENS);
-            console.log(TOKENS);
             LoadSpotifyData();
             break;
         case "NOTION":

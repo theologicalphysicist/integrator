@@ -71,7 +71,7 @@ app.on("window-all-closed", () => {
 
 
 //_ EVENT HANDLERS
-ipcMain.on("SpotifyAuth", async (event, html_page, page_url, session_id) => {
+ipcMain.on("SpotifyAuth", async (event, page_url, session_id) => {
 
     spotify_auth_window = new BrowserWindow({
         width: 800,
