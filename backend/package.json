@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "nodemon -r dotenv/config ./index.js",
     "ts_dev": "tsc -w & nodemon -r dotenv/config .",
-    "start": "node ./index.js",
+    "start": "node ./index.js"
   },
   "repository": {
     "type": "git",

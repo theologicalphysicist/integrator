@@ -33,18 +33,15 @@ const DataFetchFunctions = () => {
         const AUTH_URL = await (await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/spotify_authorization?sessionID=${localStorage.getItem("sessionID")}`)).text();
         console.log(AUTH_URL);
 
-        const AUTH_RES = await (await fetch(AUTH_URL)).text();
         localStorage.setItem("recentFetch", "SPOTIFY");
-        renderer.SpotifyAuth(AUTH_RES, AUTH_URL, localStorage.getItem("sessionID"));
+        renderer.SpotifyAuth(AUTH_URL, localStorage.getItem("sessionID"));
     };
 };
 
 
 const HomePageRender = async () => {
     const INIT_RES = await (await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/init`)).json();
-    console.log(INIT_RES);
     localStorage.setItem("sessionID", INIT_RES.id);
-    // console.log(sessions.session());
     
     NAVIGATION_BAR.innerHTML += Navbar({
         current: "Home",
@@ -128,8 +125,9 @@ const HomePageRender = async () => {
     `;
 
     EXIT_BUTTON.onclick = async (event) => {
-        const END_SESSION_RES = await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/exit?sessionID=${sessions.session().sessionID}`);
+        const END_SESSION_RES = await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/exit?sessionID=${localStorage.getItem("sessionID")}`);
         localStorage.clear();
+        
         //TODO EXCEPTION HANDLING HERE!
     };
 
