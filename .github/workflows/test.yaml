@@ -36,8 +36,15 @@ jobs:
             ${{ runner.os }}-
       - name: install packages, build (if necessary), test (if exists)
         run: |
+          npm prune --production
           npm install
         working-directory: ${{env.AZURE_WEBAPP_PACKAGE_PATH}}
+      - name: log onto Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{secrets.AZURE_INTEGRATOR_CLIENT_ID}}
+          tenant-id: ${{secrets.AZURE_INTEGRATOR_TENANT_ID}}
+          subscription-id: ${{secrets.AZURE_SUBSCRIPTION_ID}}
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v2
         with:
