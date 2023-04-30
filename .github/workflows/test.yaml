@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: integrator-backend
+  AZURE_WEBAPP_NAME: Integrator
   AZURE_WEBAPP_PACKAGE_PATH: "./backend"
   NODE_VERSION: "18.x"
 
@@ -49,6 +49,6 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{env.AZURE_WEBAPP_NAME}}
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_CD535F3EB16B44599C1B7FBA6ED90C4C }}
+          publish-profile: ${{secrets.AZUREAPPSERVICE_PUBLISHPROFILE_CD535F3EB16B44599C1B7FBA6ED90C4C}}
           package: ${{env.AZURE_WEBAPP_PACKAGE_PATH}}
     
