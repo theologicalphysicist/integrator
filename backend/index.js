@@ -14,9 +14,9 @@ import MongoStore from "connect-mongo";
 
 //- LOCAL
 import { SPOTIFY_ACCOUNTS_URL, MONGODB_URL } from "./utils.js";
-import { MONGODB_CLIENT } from "./apis/clients.js";
+import { MONGODB_CLIENT, NOTION_CLIENT } from "./apis/clients.js";
 import {getAuthCode, getPlaylists, refreshToken} from "./apis/media/spotify.js"
-import {NotionFetch, getNotionDB} from "./apis/productivity/notion.js";
+import {getAllNotionDatabases, getNotionDatabaseDetails} from "./apis/productivity/notion.js";
 
 //_ MIDDLEQARE
 
@@ -122,15 +122,15 @@ app.get("/mongo_test", async (req, res) => {
 
 //_ NOTION
 app.get("/notion_db", async (req, res) => {
-    const NOTION_DB_RESPONSE = await getNotionDB();
+    const NOTION_DB_RESPONSE = await getNotionDatabaseDetails(NOTION_CLIENT, process.env.NOTION_TOKEN, process.env.NOTION_DATABASE_ID);
     console.log(NOTION_DB_RESPONSE);
     res.send(NOTION_DB_RESPONSE);
 });
 
 
-app.get("/notion_uni_db", async (req, res) => {
+app.get("/notion", async (req, res) => {
     console.log(req);
-    const NOTION_RESPONSE = await NotionFetch();
+    const NOTION_RESPONSE = await getAllNotionDatabases(NOTION_CLIENT, process.env.NOTION_TOKEN);
     res.send(JSON.stringify(NOTION_RESPONSE, null, 4));
 });
 

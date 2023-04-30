@@ -11,3 +11,8 @@ Desktop/src/styles/*.css
 #- BACKEND
 */dist/
 */.parcel-cache/
+
+.env*
+.flaskenv*
+!.env.project
+!.env.vault
