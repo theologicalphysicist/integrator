@@ -1,4 +1,4 @@
-export const getNotionDatabaseDetails = async (notion_client, db_id) => {
+export const getNotionDatabaseDetails = async (notion_client, notion_token, db_id) => {
 
     let finished = false;
     let next_cursor = undefined;
@@ -23,7 +23,7 @@ export const getNotionDatabaseDetails = async (notion_client, db_id) => {
 
     while (!finished) {
 
-        const RES = await notion_client.databases.query({
+        const RES = await notion_client(notion_token).databases.query({
             database_id: db_id,
             page_size: 100,
             start_cursor: next_cursor
@@ -42,7 +42,7 @@ export const getNotionDatabaseDetails = async (notion_client, db_id) => {
 }
 
 
-export const getAllNotionDatabases = async (notion_client) => {
+export const getAllNotionDatabases = async (notion_client, notion_token) => {
 
     const ProcessNotionDBData = (data) => {
         let items = [];
@@ -58,7 +58,7 @@ export const getAllNotionDatabases = async (notion_client) => {
         return items;
     };
 
-    const RES = await notion_client.search({
+    const RES = await notion_client(notion_token).search({
         filter: {
             value: "database",
             property: "object"
