@@ -15,7 +15,6 @@ jobs:
   build-and-deploy:
     name: Build and Deploy
     runs-on: ubuntu-latest
-    environment: Development
     permissions:
       id-token: write
     steps:
@@ -50,6 +49,6 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{env.AZURE_WEBAPP_NAME}}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_CD535F3EB16B44599C1B7FBA6ED90C4C }}
           package: ${{env.AZURE_WEBAPP_PACKAGE_PATH}}
     
