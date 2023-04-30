@@ -1,4 +1,4 @@
-name: (TEST) Build and deploy Node.js app to Azure Web App - integrator-backend
+name: (TEST) build and deploy - integrator-backend
 
 on:
   push:
@@ -36,7 +36,6 @@ jobs:
             ${{ runner.os }}-
       - name: install packages, build (if necessary), test (if exists)
         run: |
-          npm prune --production
           npm install
         working-directory: ${{env.AZURE_WEBAPP_PACKAGE_PATH}}
       - name: log onto Azure
