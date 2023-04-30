@@ -1,0 +1,22 @@
+@use "utils";
+
+button#exit_app {
+    font-size: x-large;
+    font-weight: 900;
+    text-align: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    position: sticky;
+    float: right;
+    bottom: 1rem;
+    right: 1rem;
+    border: 0px;
+    background-color: utils.$main-colour;
+    transition-property: background-color;
+    transition-duration: 1s;
+    transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
+    &:hover {
+        background-color: #f00;
+    }
+}
