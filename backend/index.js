@@ -182,7 +182,7 @@ app.get("/spotify_callback", async (req, res) => {
             });
             SPOTIFY_TOKENS_AVAILABLE.emit("tokens-available", req.query.state);
         });
-        res.redirect("index.html");
+        res.redirect("spotify.html");
     } else {
         res.status(500).send("SERVER ERROR");
     };

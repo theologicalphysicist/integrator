@@ -11,7 +11,10 @@ import("query-string")
     .catch((err) => console.error(`ERROR: ${err}`));
 
 if (process.env.NODE_ENV !== "production") {
-    require("dotenv").config();
+    require("dotenv").config({
+        "debug": true,
+        "path": "./.env.local"
+    });
 }
 
 let main_window;
