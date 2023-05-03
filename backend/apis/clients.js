@@ -3,7 +3,7 @@ import axios from "axios";
 import { MongoClient } from "mongodb";
 import { Client } from "@notionhq/client";
 
-import { SPOTIFY_ACCOUNTS_URL, SPOTIFY_API_URL } from "../utils.js";
+import { SPOTIFY_ACCOUNTS_URL, SPOTIFY_API_URL } from "../utils/const.js";
 
 
 export const SPOTIFY_ACCOUNTS_INSTANCE = (client_id, client_secret) => axios.create({

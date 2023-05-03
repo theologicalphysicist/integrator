@@ -1,10 +1,8 @@
 import Express from "express";
 
-import queryString from "query-string";
 import { v4 as uuidv4 } from "uuid";
-import EventEmitter from "node:events";
 
-//- MIDDLEWARE
+//_ MIDDLEWARE IMPORTS
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
@@ -12,13 +10,15 @@ import session from "express-session";
 import bodyParser from "body-parser";
 import MongoStore from "connect-mongo";
 
-//- LOCAL
-import { SPOTIFY_ACCOUNTS_URL, MONGODB_URL } from "./utils.js";
-import { MONGODB_CLIENT, NOTION_CLIENT } from "./apis/clients.js";
-import {getAuthCode, getPlaylists, refreshToken} from "./apis/media/spotify.js"
-import {getAllNotionDatabases, getNotionDatabaseDetails} from "./apis/productivity/notion.js";
+//_ ROUTERS
+import NOTION_ROUTER from "./routers/notion.js";
+import SPOTIFY_ROUTER from "./routers/spotify.js";
 
-//_ MIDDLEQARE
+//_ LOCAL
+import { MONGODB_URL } from "./utils/const.js";
+import { GENERIC_ERROR_MESSAGE } from "./utils/error.js";
+import { MONGODB_CLIENT } from "./apis/clients.js";
+import {RequestLoggerFormat, ResponseLoggerFormat} from "./utils/logger.js";
 
 
 const STORE = MongoStore.create({
@@ -27,16 +27,25 @@ const STORE = MongoStore.create({
     collectionName: "user_sessions",
     stringify: false,
 });
-
-
 const app = Express();
+
+//_ MIDDLEWARE
 app.use(cors());
-app.use(morgan("dev"));
+app.use(morgan((tokens, req, res) => RequestLoggerFormat(tokens, req, res), {
+    skip: false,
+    immediate: true
+}));
+app.use(morgan((tokens, req, res) => ResponseLoggerFormat(tokens, req, res), {
+    skip: false,
+    immediate: false
+}));
 app.use(Express.static("./public"));
 app.use(bodyParser.json());
 app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(session({
-    genid: (req) => uuidv4(),
+    genid: (req) => {
+        return uuidv4();
+    },
     name: "user_session",
     resave: false,
     secret: process.env.SESSION_SECRET,
@@ -44,11 +53,9 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         maxAge: 1000 * 60 * 60 * 24, //* 1 day in millisecs
-    }
+    },
 }));
 
-//* long-polling to handle spotify tokens
-const SPOTIFY_TOKENS_AVAILABLE = new EventEmitter();
 
 //_ SERVER
 app.get("/", (req, res) => {
@@ -56,18 +63,15 @@ app.get("/", (req, res) => {
 });
 
 
-app.get("/cookie_test", async (req, res) => {
-    console.log(req.headers.cookie);
-    res.send({result: true});
-});
-
-
-app.get("/init", async (req, res) => {
+app.get("/init", async (req, res, next) => {
 
     try {
 
         const SESSION_RES = req.session.save((err) => {
-            if (err) return err;
+            if (err) next({
+                ...GENERIC_ERROR_MESSAGE,
+                details: err
+            });
         });
         if (SESSION_RES) throw SESSION_RES;
 
@@ -100,6 +104,12 @@ app.get("/exit", async (req, res) => {
 });
 
 
+app.get("/cookie_test", async (req, res) => {
+    console.log(req.headers.cookie);
+    res.send({result: true});
+});
+
+
 //_ MONGODB
 app.get("/mongo_test", async (req, res) => {
     const CLIENT = await MONGODB_CLIENT(process.env.MONGODB_USER, process.env.MONGODB_PASSWORD);
@@ -121,136 +131,23 @@ app.get("/mongo_test", async (req, res) => {
 
 
 //_ NOTION
-app.get("/notion_db", async (req, res) => {
-    const NOTION_DB_RESPONSE = await getNotionDatabaseDetails(NOTION_CLIENT, process.env.NOTION_TOKEN, process.env.NOTION_DATABASE_ID);
-    console.log(NOTION_DB_RESPONSE);
-    res.send(NOTION_DB_RESPONSE);
-});
-
-
-app.get("/notion", async (req, res) => {
-    console.log(req);
-    const NOTION_RESPONSE = await getAllNotionDatabases(NOTION_CLIENT, process.env.NOTION_TOKEN);
-    res.send(JSON.stringify(NOTION_RESPONSE, null, 4));
-});
+app.use("/notion", NOTION_ROUTER);
 
 
 //_ SPOTIFY
-app.get("/spotify_authorization", async (req, res) => {
-
-    if (process.env.SPOTIFY_CLIENT_ID && req.query.sessionID) {
-
-        res.send(`${SPOTIFY_ACCOUNTS_URL}/authorize?${queryString.stringify({
-                response_type: "code",
-                client_id: process.env.SPOTIFY_CLIENT_ID,
-                redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
-                scope: process.env.SPOTIFY_SCOPES,
-                show_dialog: true,
-                state: req.query.sessionID
-            })}`
-        );
-        //! NOTE THAT THIS METHOD MAY CAUSE ISSUES IF ACCESSING FROM A SITE INSTEAD OF DESKTOP
-    } else {
-        res.status(500).send("SERVER ERROR");
-    };
-
-});
-
-
-app.get("/spotify_callback", async (req, res) => {
-
-    if (req.query.code && req.query.state) {
-
-        const TOKEN_RES = await getAuthCode(
-            req.query.code, 
-            process.env.SPOTIFY_CLIENT_ID, 
-            process.env.SPOTIFY_CLIENT_SECRET, 
-            process.env.SPOTIFY_REDIRECT_URI
-        );
-
-        req.sessionStore.get(req.query.state, (err, sess) => {
-            if (err) throw err;
-            req.sessionStore.set(req.query.state, {
-                ...sess,
-                spotify: {
-                    accessToken: TOKEN_RES.access_token,
-                    scope: TOKEN_RES.scope,
-                    expiryTime: (TOKEN_RES.expires_in * 1000) + Date.now(),
-                    refreshToken: TOKEN_RES.refresh_token,
-                    tokenType: TOKEN_RES.token_type
-                }
-            });
-            SPOTIFY_TOKENS_AVAILABLE.emit("tokens-available", req.query.state);
-        });
-        res.redirect("spotify.html");
-    } else {
-        res.status(500).send("SERVER ERROR");
-    };
-
-});
-
-
-app.get("/spotify_tokens", async (req, res) => {
-
-    const HANDLE_RES = (data) => {
-        res.json("YES!");
-        SPOTIFY_TOKENS_AVAILABLE.removeListener("tokens-available", HANDLE_RES);
-    };
-
-    SPOTIFY_TOKENS_AVAILABLE.on("tokens-available", HANDLE_RES);
-
-});
-
-
-app.get("/spotify_playlists", async (req, res) => {
-
-    if (!req.query.sessionID) {
-
-        res.status(500).send("SERVER ERROR") //! CHANGE THIS LATER!
-
-    } else {
-
-        req.sessionStore.get(req.query.sessionID, async (err, sess) => {
-            if (err) throw err;
-
-            let token_type = sess.spotify.tokenType;
-            let access_token = sess.spotify.accessToken;
-
-            if (sess.spotify.expiryTime <= Date.now()) {
-                //* i.e., the tokens have expired, since "now" is after the expiry date.
-                const NEW_TOKENS = await refreshToken(
-                    sess.spotify.refreshToken,
-                    process.env.SPOTIFY_CLIENT_ID, 
-                    process.env.SPOTIFY_CLIENT_SECRET
-                );
-
-                token_type = NEW_TOKENS.token_type;
-                access_token = NEW_TOKENS.access_token;
-
-                req.sessionStore.set(req.query.sessionID, {
-                    ...sess,
-                    spotify: {
-                        accessToken: access_token,
-                        scope: NEW_TOKENS.scope,
-                        expiryTime: (NEW_TOKENS.expires_in * 1000) + Date.now(),
-                        refreshToken: sess.spotify.refreshToken,
-                        tokenType: token_type
-                    }
-                });
-            };
-
-            const PLAYLIST_RES = await getPlaylists(token_type, access_token);
-
-            res.send(PLAYLIST_RES);
-        });
-
-    };
-
-});
+app.use("/spotify", SPOTIFY_ROUTER);
 
 
 //_ MICROSOFT
 
+
+//_ CONFIG
+//_ ERROR HANDLING
+app.use((err, req, res, next) => {
+    console.error(err);
+
+    res.send(err);
+});
 
 
 app.listen(process.env.PORT || 3000, () => {

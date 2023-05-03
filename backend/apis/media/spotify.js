@@ -93,7 +93,7 @@ export const refreshToken = async (r_token, client_id, client_secret) => {
     }).then((res) => {
         token_response = res.data;
     }).catch((err) => {
-        console.error(`ERRor: ${err}`);
+        console.error(`ERROR: ${err}`);
     });
 
     return token_response;
