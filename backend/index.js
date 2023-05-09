@@ -20,7 +20,7 @@ import { GENERIC_ERROR_MESSAGE } from "./utils/error.js";
 import {RequestLoggerFormat, ResponseLoggerFormat} from "./utils/logger.js";
 import { generateRandomString } from "./utils/func.js";
 import { MONGODB_CLIENT } from "./apis/clients.js";
-
+import {getGithubIssues, getGithubRepositories, getGithubRepositoryLanguages} from "./apis/productivity/github.js"
 
 const app = Express();
 const STORE = MongoStore.create({
@@ -154,6 +154,37 @@ app.use("/spotify", SPOTIFY_ROUTER);
 
 
 //_ MICROSOFT
+//_ GITHUB
+app.get("/github_repositories", async (req, res, next) => {
+    if (!req.query.username) {
+        res.status(400).json(ERROR_MESSAGES.BAD_REQUEST);
+    } else {
+        res.send(await getGithubRepositories(req.query.username).catch(next));
+    }
+
+});
+
+
+app.get("/github_repository_issues", async (req, res, next) => {
+    if (!req.query.username || !req.query.repository) {
+        res.status(400).json(ERROR_MESSAGES.BAD_REQUEST);
+    } else {
+        const RESPONSE = await getGithubIssues(req.query.username, req.query.repository).catch(next);
+        res.send(RESPONSE);
+    }
+});
+
+
+app.get("/github_repository_languages", async (req, res, next) => {
+    console.log(req.query.repositories);
+    if (!req.query.username || !req.query.repositories) {
+        res.status(400).json(ERROR_MESSAGES.BAD_REQUEST);
+    } else {
+
+        const RESPONSE = await getGithubRepositoryLanguages(req.query.username, req.query.repositories);
+        res.status(200).send(RESPONSE);
+    };
+});
 
 
 //_ CONFIG

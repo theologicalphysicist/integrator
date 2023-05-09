@@ -17,10 +17,13 @@ if (process.env.NODE_ENV !== "production") {
     });
 };
 
+
 const INTEGRATOR_INSTANCE = axios.create({
     baseURL: process.env.EXPRESS_BACKEND_API_URL,
     responseType: "json",
 });
+
+
 const fetch = async (url, request_data, sessionID, cookies, verb) => {
     let fetch_response = {
         error: {

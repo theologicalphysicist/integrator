@@ -12,7 +12,7 @@ Desktop/src/styles/*.css
 */dist/
 */.parcel-cache/
 
-.env*
+# .env*
 .flaskenv*
 !.env.project
 !.env.vault

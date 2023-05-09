@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld("renderer", {
                 }
             )
     },
+    GITHUB_USERNAME: process.env.GITHUB_USERNAME,
 });
 
 //! ipcRenderer.send => called by renderer, defined & ran in main.
