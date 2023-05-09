@@ -17,6 +17,7 @@ import { SPOTIFY_ACCOUNTS_URL, MONGODB_URL } from "./utils.js";
 import { MONGODB_CLIENT } from "./apis/clients.js";
 import {getAuthCode, getPlaylists, refreshToken} from "./apis/media/spotify.js"
 import {NotionFetch, getNotionDB} from "./apis/productivity/notion.js";
+import {getGithubIssues, getGithubRepositories, getGithubRepositoryLanguages} from "./apis/productivity/github.js"
 
 //_ MIDDLEQARE
 
@@ -278,7 +279,7 @@ app.get("/github_repository_languages", async (req, res, next) => {
     } else {
 
         const RESPONSE = await getGithubRepositoryLanguages(req.query.username, req.query.repositories);
-        res.send(RESPONSE);
+        res.status(200).send(RESPONSE);
     };
 });
 

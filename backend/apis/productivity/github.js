@@ -76,7 +76,7 @@ export const getGithubRepositories = async (username) => {
         // console.log(res);
     } catch (error) {
         console.error(error);
-    }
+    };
 
     //TODO: REFACTOR SO THAT PROPER ERROR HANDLING IS USED
     if (res) {
@@ -91,7 +91,6 @@ export const getGithubRepositoryLanguages = async (username, repositories) => {
     let res = {};
     try {
         for (const R of repositories) {
-            console.log("here");
             const GITHUB_RESPONSE = await OCTOKIT.request("GET /repos/{owner}/{repo}/languages", {
                 owner: username,
                 repo: R

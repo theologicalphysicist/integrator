@@ -36,6 +36,16 @@ const DataFetchFunctions = () => {
         localStorage.setItem("recentFetch", "SPOTIFY");
         renderer.SpotifyAuth(AUTH_URL, localStorage.getItem("sessionID"));
     };
+
+    const GITHUB_FETCH_COMMAND = document.getElementById("github_fetch");
+    GITHUB_FETCH_COMMAND.onclick = async (event) => {
+        console.log(event);
+        const RES = await (await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/github_repositories?username=${renderer.GITHUB_USERNAME}`)).json();
+        console.log(RES);
+        localStorage.setItem("recentFetch", "GITHUB");
+        localStorage.setItem("GithubFetchData", JSON.stringify(RES));
+        location.href = "../pages/data.html";
+    };
 };
 
 
