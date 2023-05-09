@@ -24,7 +24,8 @@ const IntroductionParagraph = () => {
         "Focus To-do",
         "Pomodone",
         "Pomotodo",
-        "Microsoft To-do"
+        "Microsoft To-do",
+        "Github"
     ];
 
     return (`

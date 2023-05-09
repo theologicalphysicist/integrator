@@ -1,12 +1,53 @@
 import { NAVIGATION_BAR, Navbar, Loading } from "./global_renderer.js";
-import {SpotifyPlaylistGrid, NotionDBGrid} from "../components/data.js";
+import {SpotifyPlaylistGrid, NotionDBGrid, GithubDataGrid} from "../components/data.js";
+
+import {LANGUAGE_COLOURS} from "../../const/languageColors.js";
 
 
 const LOAD_DATA_AREA = document.getElementById("load_data");
 LOAD_DATA_AREA.innerHTML = Loading();
 
 
-const DataPageRender = () => {
+const sum = (numbers) => {
+    let total = 0;
+
+    numbers.forEach((num) => {total += num;});
+
+    return total;
+};
+
+
+const loadGithubRepositoryData = async (repo_names) => {
+    let repo_query_string = "";
+
+    repo_names.forEach((r_n) => {repo_query_string += `&repositories=${r_n}`;});
+
+    const LANGUAGES_RES = await (await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/github_repository_languages?username=${renderer.GITHUB_USERNAME}${repo_query_string}`)).json();
+
+    return LANGUAGES_RES;
+};
+
+
+const LoadSpotifyData = async () => {
+    const PLAYLIST_RES = await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/spotify_playlists/?sessionID=${localStorage.getItem("sessionID")}`, {
+        method: "GET",
+        mode: "cors",
+        credentials: "include",
+        headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+        },
+    });
+
+    const PLAYLIST_DATA = await PLAYLIST_RES.json();
+    console.log(PLAYLIST_DATA);
+    LOAD_DATA_AREA.innerHTML = SpotifyPlaylistGrid(PLAYLIST_DATA, "playlist_grid");
+};
+
+
+const DataPageRender = async () => {
+    let fetched;
+
     NAVIGATION_BAR.innerHTML += Navbar({
         current: "Data Page",
         links: {
@@ -21,29 +62,30 @@ const DataPageRender = () => {
             LoadSpotifyData();
             break;
         case "NOTION":
-            const FETCHED = JSON.parse(localStorage.getItem("NotionFetchData"));
-            if (FETCHED) LOAD_DATA_AREA.innerHTML = NotionDBGrid(FETCHED, "database_grid");
+            fetched = JSON.parse(localStorage.getItem("NotionFetchData"));
+            if (fetched) LOAD_DATA_AREA.innerHTML = NotionDBGrid(fetched, "database_grid");
+            break;
+        case "GITHUB": //TODO: REFACTOR THIS!
+            fetched = JSON.parse(localStorage.getItem("GithubFetchData"));
+            const REPO_NAMES = fetched.map((f) => f.repoName);
+            const REPO_LANGUAGES = await loadGithubRepositoryData(REPO_NAMES);
+            LOAD_DATA_AREA.innerHTML = fetched ? GithubDataGrid(fetched, "database_grid", REPO_LANGUAGES) : null;
+
+            //_ SET LANGUAGE IMAGE OF REPOSITORY
+            for (const REPO in REPO_LANGUAGES) {
+                for (const LANGS in REPO_LANGUAGES[REPO]) {
+                    const TOTAL = sum(Object.values(REPO_LANGUAGES[REPO]));
+                    const CURRENT_SPAN = document.getElementById(`${REPO}_${LANGS}`);
+                    CURRENT_SPAN.style.backgroundColor = LANGUAGE_COLOURS[LANGS];
+                    console.log(((REPO_LANGUAGES[REPO][LANGS] / TOTAL) * 100) + "%");
+                    CURRENT_SPAN.style.width = ((REPO_LANGUAGES[REPO][LANGS] / TOTAL) * 100) + "%";
+                }
+            };
+
             break;
     };
 
 };
 
 
-const LoadSpotifyData = async () => {
-
-    const PLAYLIST_RES = await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/spotify_playlists/?sessionID=${localStorage.getItem("sessionID")}`, {
-        method: "GET",
-        mode: "cors",
-        credentials: "include",
-        headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json"
-        },
-    });
-    const PLAYLIST_DATA = await PLAYLIST_RES.json();
-    console.log(PLAYLIST_DATA);
-    LOAD_DATA_AREA.innerHTML = SpotifyPlaylistGrid(PLAYLIST_DATA, "playlist_grid");
-};
-
-
-DataPageRender();
+await DataPageRender();

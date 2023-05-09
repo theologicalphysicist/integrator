@@ -68,15 +68,15 @@ div#load_data {
             justify-content: space-around;
             padding: 0.5rem;
             margin: auto;
-            div.database-tile:hover {
-                transform: scale(1.05);
-            }
             div.database-tile {
                 width: 40%;
                 border: 1px solid utils.$notion-grey;
                 padding: 0.25rem;
                 border-radius: 5px;
                 box-shadow: 5px 5px utils.$notion-grey;
+                &:hover {
+                    transform: scale(1.05);
+                }
                 h2, p {
                     display: flex;
                     justify-content: center;
@@ -84,6 +84,15 @@ div#load_data {
                 a {
                     color: utils.$notion-grey;
                     text-decoration: none;
+                }
+                div.languages-span {
+                    width: 100%;
+                    height: 1rem;
+                    border: utils.$debug-container;
+                    display: flex;
+                    div {
+                        height: 1rem;
+                    }
                 }
             }
         }

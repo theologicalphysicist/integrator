@@ -21,8 +21,6 @@ let main_window;
 let spotify_auth_window;
 const createWindow = async () => {
     main_window = new BrowserWindow({
-        width: 800,
-        height: 600,
         webPreferences: {
             preload: path.join(__dirname, "/src/scripts/preload.js"),
             minimumFontSize: 10
