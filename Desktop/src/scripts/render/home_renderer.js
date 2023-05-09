@@ -16,32 +16,51 @@ renderer.LeaveApp((event) => {
 });
 
 
-
 const DataFetchFunctions = () => {
     const NOTION_FETCH_COMMAND = document.getElementById("notion_fetch");
     NOTION_FETCH_COMMAND.onclick = async (event) => {
         console.log(event);
-        const res = await (await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/notion_db`)).json();
-        console.log(res);
+        const NOTION_DATABASE_RES = await renderer.fetch(
+            `/notion`,
+            null,
+            localStorage.getItem("sessionID"),
+            JSON.parse(localStorage.getItem("cookies")),
+            "GET"
+        );
+
         localStorage.setItem("recentFetch", "NOTION");
-        localStorage.setItem("NotionFetchData", JSON.stringify(res));
+        localStorage.setItem("NotionFetchData", JSON.stringify(NOTION_DATABASE_RES.data));
         location.href = "../pages/data.html";
     };
 
     const SPOTIFY_FETCH_COMMAND = document.getElementById("spotify_fetch");
     SPOTIFY_FETCH_COMMAND.onclick = async (event) => {
-        const AUTH_URL = await (await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/spotify_authorization?sessionID=${localStorage.getItem("sessionID")}`)).text();
+        const AUTH_URL = await renderer.fetch(
+            `/spotify/authorization`,
+            null,
+            localStorage.getItem("sessionID"),
+            JSON.parse(localStorage.getItem("cookies")),
+            "GET"
+        );
+
         console.log(AUTH_URL);
 
         localStorage.setItem("recentFetch", "SPOTIFY");
-        renderer.SpotifyAuth(AUTH_URL, localStorage.getItem("sessionID"));
+        renderer.SpotifyAuth(AUTH_URL.data, localStorage.getItem("sessionID"));
     };
 };
 
 
 const HomePageRender = async () => {
-    const INIT_RES = await (await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/init`)).json();
-    localStorage.setItem("sessionID", INIT_RES.id);
+    renderer.fetch("/init", null, null, null, "GET")
+        .then((res) => {
+            console.log(res);
+            localStorage.setItem("sessionID", res.data.id);
+            localStorage.setItem("cookies", JSON.stringify(res.data.cookies));
+        })
+        .catch((err) => {
+            console.error(`ERROR: ${err}`);
+        });
     
     NAVIGATION_BAR.innerHTML += Navbar({
         current: "Home",

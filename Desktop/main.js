@@ -15,12 +15,58 @@ if (process.env.NODE_ENV !== "production") {
         "debug": true,
         "path": "./.env.local"
     });
-}
+};
 
-let main_window;
-let spotify_auth_window;
+const INTEGRATOR_INSTANCE = axios.create({
+    baseURL: process.env.EXPRESS_BACKEND_API_URL,
+    responseType: "json",
+});
+const fetch = async (url, request_data, sessionID, cookies, verb) => {
+    let fetch_response = {
+        error: {
+            present: false,
+            code: 0,
+            details: ""
+        }
+    };
+
+    await INTEGRATOR_INSTANCE.request({
+        method: verb,
+        url: url,
+        data: request_data,
+        params: {
+            sessionID: sessionID,
+            cookies: cookies
+        }
+    }).then((res) => {
+        fetch_response = {
+            ...fetch_response,
+            data: res.data
+        };
+    }).catch((err) => {
+        console.error(`ERROR: ${err}`);
+
+        fetch_response = {
+            ...fetch_response,
+            error: {
+                present: true,
+                code: 400, //! this should be changed later, on how axios works
+                details: err
+            }
+        };
+        throw new Error(err);
+    });
+
+    return fetch_response;
+};
+
+
+let MAIN_WINDOW;
+let SPOTIFY_AUTH_WINDOW;
+
+
 const createWindow = async () => {
-    main_window = new BrowserWindow({
+    MAIN_WINDOW = new BrowserWindow({
         width: 800,
         height: 600,
         webPreferences: {
@@ -39,15 +85,22 @@ const createWindow = async () => {
         },
     });
 
-    main_window.webContents.openDevTools();
-    main_window.setBounds({x: 1620, y: 1601, width: 1200, height: 600});
-    main_window.center();
-    main_window.loadFile("./pages/index.html");
-    main_window.on("ready-to-show", () => {
-        main_window.show();
+    MAIN_WINDOW.webContents.openDevTools();
+    MAIN_WINDOW.setBounds({x: 640, y: 1600, width: 1270, height: 1080});
+    // main_window.center();
+    MAIN_WINDOW.loadFile("./pages/index.html");
+    MAIN_WINDOW.on("ready-to-show", () => {
+        MAIN_WINDOW.show();
     });
 
 };
+
+//TODO: CREATE "GET SESSION DATA" METHOD FOR SENDING COOKIES & SESSIONID IN FETCH
+
+
+//_ SESSION MAINTENANCE
+let ELECTRON_SESSION;
+
 
 app.on("ready", async ()  => {
     loadCssPreprocessors();
@@ -60,6 +113,9 @@ app.on("ready", async ()  => {
             await createWindow();
         };
     });
+
+    ELECTRON_SESSION = session.fromPartition("persist:test");
+    console.log(ELECTRON_SESSION.getUserAgent());
 
 });
 
@@ -76,34 +132,41 @@ app.on("window-all-closed", () => {
 //_ EVENT HANDLERS
 ipcMain.on("SpotifyAuth", async (event, page_url, session_id) => {
 
-    spotify_auth_window = new BrowserWindow({
+    SPOTIFY_AUTH_WINDOW = new BrowserWindow({
         width: 800,
         height: 600,
-        parent: main_window,
+        parent: MAIN_WINDOW,
         icon: "./public/img/favicon.ico"
     });
 
-    spotify_auth_window.center();
-    spotify_auth_window.loadURL(page_url);
-    spotify_auth_window.on("ready-to-show", () => {
-        spotify_auth_window.show();
+    SPOTIFY_AUTH_WINDOW.center();
+    SPOTIFY_AUTH_WINDOW.loadURL(page_url);
+    SPOTIFY_AUTH_WINDOW.on("ready-to-show", () => {
+        SPOTIFY_AUTH_WINDOW.show();
     });
 
-    await axios.get(`${process.env.EXPRESS_BACKEND_API_URL}/spotify_tokens?sessionID=${session_id}`)
-    .then(async (res) => {
+    await axios.get(`${process.env.EXPRESS_BACKEND_API_URL}/spotify/tokens?sessionID=${session_id}`)
+        .then(async (res) => {
 
-        console.log(res.data);
-        await main_window.loadFile("./pages/data.html");
-        spotify_auth_window.close();
+            console.log(res.data);
+            await MAIN_WINDOW.loadFile("./pages/data.html");
+            SPOTIFY_AUTH_WINDOW.close();
 
-    }).catch((err) => {
+        })
+        .catch((err) => {
 
-        console.error(`ERROR: ${err}`);
-        
-    });
+            console.error(`ERROR: ${err}`);
+            
+        });
 
     //TODO: CREATE A GENERAL AXIOS INSTANCE WITH SESSIONID INCLUDED
 
 });
+
+
+ipcMain.handle("fetch", async (event, url, request_data, sessionID, cookies, verb) => {
+    return await fetch(url, request_data, sessionID, cookies, verb);
+});
+
 
 ipcMain.on("LeaveApp", (event) => app.quit());

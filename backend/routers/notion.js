@@ -9,17 +9,32 @@ const NOTION_ROUTER = Router();
 //_ MIDDLEWARE
 NOTION_ROUTER.use((req, res, next) => {
     if (!req.query.sessionID) { //* invalid request, no session id
-        next(new Error("No session id given!"));
+        next({
+            ...GENERIC_ERROR_MESSAGE,
+            statusCode: 400,
+            error: "BAD REQUEST",
+            details: "invalid session ID provided.",
+        });
     };
-    
+
     req.sessionStore.get(req.query.sessionID, (err, sess) => { //* invalid request, bad session id
-        if (!sess) next(new Error("Invalid session id!"));
+
+        console.log({sess});
+        console.log({err});
+
+        if (!sess) next({
+            ...GENERIC_ERROR_MESSAGE,
+            statusCode: 400,
+            error: "BAD REQUEST",
+            details: "invalid session ID provided.",
+        });
+
+        next();
     });
 });
 
 //_ ROUTES
 NOTION_ROUTER.get("/", async (req, res) => {
-    console.log(req);
     const NOTION_RESPONSE = await getAllNotionDatabases(NOTION_CLIENT, process.env.NOTION_TOKEN);
     res.send(JSON.stringify(NOTION_RESPONSE, null, 4));
 });

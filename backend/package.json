@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "local": "nodemon -r dotenv/config ./index.js dotenv_config_path=./.env.local",
+    "debug": "DEBUG=express:* nodemon -r dotenv/config ./index.js dotenv_config_path=./.env.local",
     "ts_dev": "tsc -w & nodemon -r dotenv/config .",
     "start": "node -r dotenv/config ./index.js dotenv_config_path=./.env.development dotenv_config_debug=true"
   },

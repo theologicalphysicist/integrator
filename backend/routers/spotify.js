@@ -18,29 +18,36 @@ const SPOTIFY_TOKENS_AVAILABLE = new EventEmitter();
 //_ MIDDLEWARE
 SPOTIFY_ROUTER.use((req, res, next) => {
 
-    if (!req.query.sessionID) { //* invalid request, no session id
-        next({
-            ...GENERIC_ERROR_MESSAGE,
-            statusCode: 400,
-            error: "BAD REQUEST",
-            details: "invalid session ID provided.",
+    if (req.path != "/callback") {
+        
+        if (!req.query.sessionID) { //* invalid request, no session id
+            next({
+                ...GENERIC_ERROR_MESSAGE,
+                statusCode: 400,
+                error: "BAD REQUEST",
+                details: "invalid session ID provided.",
+            });
+        };
+
+        req.sessionStore.get(req.query.sessionID, (err, sess) => { //* invalid request, bad session id
+
+            console.log({sess});
+            console.log({err});
+
+            if (!sess) next({
+                ...GENERIC_ERROR_MESSAGE,
+                statusCode: 400,
+                error: "BAD REQUEST",
+                details: "invalid session ID provided.",
+            });
+
+            next();
         });
+
+    } else {
+        next();
     };
 
-    req.sessionStore.get(req.query.sessionID, (err, sess) => { //* invalid request, bad session id
-
-        console.log({sess});
-        console.log({err});
-
-        if (!sess) next({
-            ...GENERIC_ERROR_MESSAGE,
-            statusCode: 400,
-            error: "BAD REQUEST",
-            details: "invalid session ID provided.",
-        });
-
-        next();
-    });
 
 });
 
@@ -75,6 +82,7 @@ SPOTIFY_ROUTER.get("/authorization", async (req, res) => {
 
 
 SPOTIFY_ROUTER.get("/callback", async (req, res, next) => {
+    console.log("HERE");
 
     if (req.query.code && req.query.state) {
 
@@ -84,6 +92,8 @@ SPOTIFY_ROUTER.get("/callback", async (req, res, next) => {
             process.env.SPOTIFY_CLIENT_SECRET, 
             process.env.SPOTIFY_REDIRECT_URI
         );
+
+        console.log("HERE");
 
         req.sessionStore.get(req.query.state, (err, sess) => {
             if (err) throw err;
@@ -161,6 +171,42 @@ SPOTIFY_ROUTER.get("/playlists", async (req, res) => {
         res.send(PLAYLIST_RES);
     });
 
+});
+
+
+SPOTIFY_ROUTER.post("/refresh", async (req, res) => {
+    req.sessionStore.get(req.query.sessionID, async (err, sess) => {
+        const NEW_TOKENS = await refreshToken(
+            sess.spotify.refreshToken,
+            process.env.SPOTIFY_CLIENT_ID, 
+            process.env.SPOTIFY_CLIENT_SECRET
+        );
+
+        const TOKEN_TYPE = NEW_TOKENS.token_type;
+        const ACCESS_TOKEN = NEW_TOKENS.access_token;
+
+        req.sessionStore.set(req.query.sessionID, {
+            ...sess,
+            spotify: {
+                accessToken: ACCESS_TOKEN,
+                scope: NEW_TOKENS.scope,
+                expiryTime: (NEW_TOKENS.expires_in * 1000) + Date.now(),
+                refreshToken: sess.spotify.refreshToken,
+                tokenType: TOKEN_TYPE
+            }
+        });
+
+        res.status(200).json({
+            result: true,
+            message: "TOKENS REFRESHED",
+            id: sess.id,
+            cookies: {
+                ...req.session.cookie,
+                cookieID: sess.cookieID
+            }
+
+        })
+    });
 });
 
 

@@ -9,6 +9,7 @@ import morgan from "morgan";
 import session from "express-session";
 import bodyParser from "body-parser";
 import MongoStore from "connect-mongo";
+import cookieSession from "cookie-session";
 
 //_ ROUTERS
 import NOTION_ROUTER from "./routers/notion.js";
@@ -17,17 +18,18 @@ import SPOTIFY_ROUTER from "./routers/spotify.js";
 //_ LOCAL
 import { MONGODB_URL } from "./utils/const.js";
 import { GENERIC_ERROR_MESSAGE } from "./utils/error.js";
-import { MONGODB_CLIENT } from "./apis/clients.js";
 import {RequestLoggerFormat, ResponseLoggerFormat} from "./utils/logger.js";
+import { generateRandomString } from "./utils/func.js";
+import { MONGODB_CLIENT } from "./apis/clients.js";
 
 
+const app = Express();
 const STORE = MongoStore.create({
     mongoUrl: MONGODB_URL(process.env.MONGODB_USER, process.env.MONGODB_PASSWORD),
     dbName: "sessions",
     collectionName: "user_sessions",
     stringify: false,
 });
-const app = Express();
 
 //_ MIDDLEWARE
 app.use(cors());
@@ -41,12 +43,12 @@ app.use(morgan((tokens, req, res) => ResponseLoggerFormat(tokens, req, res), {
 }));
 app.use(Express.static("./public"));
 app.use(bodyParser.json());
-app.use(cookieParser(process.env.SESSION_SECRET));
+app.use(cookieParser());
 app.use(session({
     genid: (req) => {
         return uuidv4();
     },
-    name: "user_session",
+    name: "bing",
     resave: false,
     secret: process.env.SESSION_SECRET,
     store: STORE,
@@ -65,27 +67,39 @@ app.get("/", (req, res) => {
 
 app.get("/init", async (req, res, next) => {
 
-    try {
 
-        const SESSION_RES = req.session.save((err) => {
+    // try {
+
+        const COOKIE_ID = generateRandomString(7);
+        req.session.cookieID = COOKIE_ID;
+        req.session.save((err) => {
             if (err) next({
                 ...GENERIC_ERROR_MESSAGE,
                 details: err
             });
         });
-        if (SESSION_RES) throw SESSION_RES;
 
-        res.cookie("user_session", req.session.cookie).status(200).json({
-            result: true,
-            message: "SESSION INITIALISED",
-            id: req.sessionID,
-            cookies: req.session.cookie
-        });
+        res
+            .cookie("test", JSON.stringify({
+                    ...req.session.cookie,
+                    cookieID: COOKIE_ID
+                })
+            )
+            .send({
+                result: true,
+                message: "SESSION INITIALISED",
+                id: req.session.id,
+                cookies: {
+                    ...req.session.cookie,
+                    cookieID: COOKIE_ID
+                }
+            });
 
-    } catch (err) {
-        console.error(`ERROR: ${err}`);
-        res.status(500).send(`ERROR: ${err}`);
-    };
+
+
+    // } catch (err) {
+    //     next({ERROR: "NOT WORKING"});
+    // };
 
 });
 
@@ -106,6 +120,8 @@ app.get("/exit", async (req, res) => {
 
 app.get("/cookie_test", async (req, res) => {
     console.log(req.headers.cookie);
+    console.log(req.cookies);
+    console.log(req.session);
     res.send({result: true});
 });
 
@@ -146,10 +162,10 @@ app.use("/spotify", SPOTIFY_ROUTER);
 app.use((err, req, res, next) => {
     console.error(err);
 
-    res.send(err);
+    res.send({error: err});
 });
 
-
+//_ SERVER
 app.listen(process.env.PORT || 3000, () => {
     console.log(`CORS-enabled Integrator App listening on port ${process.env.PORT || 3000}`);
 });

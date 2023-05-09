@@ -6,6 +6,21 @@ const LOAD_DATA_AREA = document.getElementById("load_data");
 LOAD_DATA_AREA.innerHTML = Loading();
 
 
+const LoadSpotifyData = async () => {
+
+
+    const PLAYLIST_RES = await renderer.fetch(
+        "/spotify/playlists",
+        null,
+        localStorage.getItem("sessionID"),
+        JSON.parse(localStorage.getItem("cookies")),
+        "GET"
+    );
+    
+    LOAD_DATA_AREA.innerHTML = SpotifyPlaylistGrid(PLAYLIST_RES.data, "playlist_grid");
+};
+
+
 const DataPageRender = () => {
     NAVIGATION_BAR.innerHTML += Navbar({
         current: "Data Page",
@@ -22,28 +37,15 @@ const DataPageRender = () => {
             break;
         case "NOTION":
             const FETCHED = JSON.parse(localStorage.getItem("NotionFetchData"));
-            if (FETCHED) LOAD_DATA_AREA.innerHTML = NotionDBGrid(FETCHED, "database_grid");
+
+            localStorage.removeItem("NotionFetchData");
+            LOAD_DATA_AREA.innerHTML = NotionDBGrid(FETCHED, "database_grid");
             break;
     };
 
 };
 
 
-const LoadSpotifyData = async () => {
-
-    const PLAYLIST_RES = await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/spotify_playlists/?sessionID=${localStorage.getItem("sessionID")}`, {
-        method: "GET",
-        mode: "cors",
-        credentials: "include",
-        headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json"
-        },
-    });
-    const PLAYLIST_DATA = await PLAYLIST_RES.json();
-    console.log(PLAYLIST_DATA);
-    LOAD_DATA_AREA.innerHTML = SpotifyPlaylistGrid(PLAYLIST_DATA, "playlist_grid");
-};
 
 
 DataPageRender();
