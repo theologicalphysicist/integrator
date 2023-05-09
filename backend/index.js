@@ -9,7 +9,6 @@ import morgan from "morgan";
 import session from "express-session";
 import bodyParser from "body-parser";
 import MongoStore from "connect-mongo";
-import cookieSession from "cookie-session";
 
 //_ ROUTERS
 import NOTION_ROUTER from "./routers/notion.js";
