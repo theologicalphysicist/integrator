@@ -1,6 +1,7 @@
 @use "../nav";
 @use "../utils";
 @use "../title";
+@use "../loading";
 
 div#load_data {
     width: 80%;

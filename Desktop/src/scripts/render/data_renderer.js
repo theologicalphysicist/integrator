@@ -1,10 +1,12 @@
-import { NAVIGATION_BAR, Navbar } from "./global_renderer.js";
+import { NAVIGATION_BAR, Navbar, Loading } from "./global_renderer.js";
 import {SpotifyPlaylistGrid, NotionDBGrid, GithubDataGrid} from "../components/data.js";
 
 import {LANGUAGE_COLOURS} from "../../const/languageColors.js";
 
 
 const LOAD_DATA_AREA = document.getElementById("load_data");
+LOAD_DATA_AREA.innerHTML = Loading();
+
 
 
 const sum = (numbers) => {
@@ -31,9 +33,6 @@ const DataPageRender = async () => {
     let fetched, repo_languages;
     switch (localStorage.getItem("recentFetch")) {
         case "SPOTIFY":
-            const TOKENS = localStorage.getItem("SpotifyTokens");
-            console.log(typeof TOKENS);
-            console.log(TOKENS);
             LoadSpotifyData();
             break;
         case "NOTION":
@@ -73,8 +72,8 @@ const loadGithubRepositoryData = async (repo_names) => {
 
 
 const LoadSpotifyData = async () => {
-    console.log("HERE");
-    const PLAYLIST_RES = await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/spotify/?redirectURI=http://localhost:3000/spotify_playlists`, {
+
+    const PLAYLIST_RES = await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/spotify_playlists/?sessionID=${localStorage.getItem("sessionID")}`, {
         method: "GET",
         mode: "cors",
         credentials: "include",

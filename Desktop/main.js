@@ -1,51 +1,24 @@
-const {app, BrowserWindow, ipcMain, BrowserView} = require("electron");
+const {app, BrowserWindow, ipcMain, ipcRenderer, session} = require("electron");
 const path = require("path");
-const sass = require("sass");
-const fs = require("fs");
-const jsdom = require("jsdom");
-const shell = require("electron").shell;
-const { JSDOM } = jsdom;
+const {loadCssPreprocessors} = require("./src/utils.js")
+const axios = require("axios").default;
+
+let queryString;
+import("query-string")
+    .then((module_obj) => {
+        queryString = module_obj.default
+    })
+    .catch((err) => console.error(`ERROR: ${err}`));
 
 if (process.env.NODE_ENV !== "production") {
-    require("dotenv").config();
-    // try {
-    //     require("electron-reloader")(module, {
-    //         debug: true,
-    //         watchRenderer: true
-    //     });
-    // } catch (_) {console.log(_)}
-}
-
-const loadCssPreprocessors = () => {
-    const home_res = sass.compile(path.join(__dirname, "/src/styles/scss/home/home.scss"));    
-    fs.writeFile(
-        path.join(__dirname, "/src/styles/home.css"), 
-        home_res.css, 
-        (err) => {
-            if (err) {console.log(err)}
-        }
-    );
-
-    const productivity_res = sass.compile(path.join(__dirname, "/src/styles/scss/data/data.scss"));
-    fs.writeFile(
-        path.join(__dirname, "/src/styles/data.css"), 
-        productivity_res.css, 
-        (err) => {
-            if (err) {console.log(err)}
-        }
-    );
-
-    const media_res = sass.compile(path.join(__dirname, "./src/styles/scss/media/media.scss"));
-    fs.writeFile(
-        path.join(__dirname, "/src/styles/media.css"), 
-        media_res.css, 
-        (err) => {
-            if (err) {console.log(err)}
-        }
-    );
+    require("dotenv").config({
+        "debug": true,
+        "path": "./.env.local"
+    });
 }
 
 let main_window;
+let spotify_auth_window;
 const createWindow = async () => {
     main_window = new BrowserWindow({
         webPreferences: {
@@ -54,7 +27,7 @@ const createWindow = async () => {
         },
         movable: true,
         icon: "./public/img/favicon.ico",
-        frame: false,
+        frame: true,
         show: false,
         backgroundColor: "#fff",
         titleBarStyle: "hidden",
@@ -63,35 +36,72 @@ const createWindow = async () => {
             symbolColor: "#fff"
         },
     });
+
     main_window.webContents.openDevTools();
-    main_window.setBounds({x: 1620, y: 1700, width: 1200, height: 600});
+    main_window.setBounds({x: 1620, y: 1601, width: 1200, height: 600});
     main_window.center();
     main_window.loadFile("./pages/index.html");
     main_window.on("ready-to-show", () => {
         main_window.show();
     });
-    ipcMain.handle("bing", () => "bong");
 
-    ipcMain.on("SpotifyAuth", (event, url, filestring) => {
-        console.log(event);
-        shell.openExternal(url);
-    });
-}
+};
 
-app.whenReady().then(()  => {
+app.on("ready", async ()  => {
     loadCssPreprocessors();
-    createWindow();
+    await createWindow();
 
-    app.on("activate", () => {
+    app.on("activate", async () => {
+        //* for mac users
         loadCssPreprocessors();
         if (BrowserWindow.getAllWindows().length === 0) {
-            createWindow();
-        }
+            await createWindow();
+        };
     });
+
 });
+
+
 app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") app.quit();
+
+    if (process.platform !== "darwin") {
+        app.quit();
+    };
+
 });
-app.on("session-created", (ses) => {
-    // console.log({ses});
+
+
+//_ EVENT HANDLERS
+ipcMain.on("SpotifyAuth", async (event, page_url, session_id) => {
+
+    spotify_auth_window = new BrowserWindow({
+        width: 800,
+        height: 600,
+        parent: main_window,
+        icon: "./public/img/favicon.ico"
+    });
+
+    spotify_auth_window.center();
+    spotify_auth_window.loadURL(page_url);
+    spotify_auth_window.on("ready-to-show", () => {
+        spotify_auth_window.show();
+    });
+
+    await axios.get(`${process.env.EXPRESS_BACKEND_API_URL}/spotify_tokens?sessionID=${session_id}`)
+    .then(async (res) => {
+
+        console.log(res.data);
+        await main_window.loadFile("./pages/data.html");
+        spotify_auth_window.close();
+
+    }).catch((err) => {
+
+        console.error(`ERROR: ${err}`);
+        
+    });
+
+    //TODO: CREATE A GENERAL AXIOS INSTANCE WITH SESSIONID INCLUDED
+
 });
+
+ipcMain.on("LeaveApp", (event) => app.quit());
