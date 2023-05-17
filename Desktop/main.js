@@ -1,7 +1,9 @@
 const {app, BrowserWindow, ipcMain, ipcRenderer, session} = require("electron");
-const path = require("path");
-const {loadCssPreprocessors} = require("./src/utils.js")
-const axios = require("axios").default;
+// const axios = require("axios").default;
+
+//_ LOCAL
+const {loadCSS, INTEGRATOR_INSTANCE} = require("./src/utils.js");
+const { createMainWindow, createSpotifyAuthWindow } = require("./src/windows.js");
 
 let queryString;
 import("query-string")
@@ -18,157 +20,111 @@ if (process.env.NODE_ENV !== "production") {
 };
 
 
-const INTEGRATOR_INSTANCE = axios.create({
-    baseURL: process.env.EXPRESS_BACKEND_API_URL,
-    responseType: "json",
-});
-
-
-const fetch = async (url, request_data, sessionID, cookies, verb) => {
-    let fetch_response = {
-        error: {
-            present: false,
-            code: 0,
-            details: ""
-        }
-    };
-
-    await INTEGRATOR_INSTANCE.request({
-        method: verb,
-        url: url,
-        data: request_data,
-        params: {
-            sessionID: sessionID,
-            cookies: cookies
-        }
-    }).then((res) => {
-        fetch_response = {
-            ...fetch_response,
-            data: res.data
-        };
-    }).catch((err) => {
-        console.error(`ERROR: ${err}`);
-
-        fetch_response = {
-            ...fetch_response,
-            error: {
-                present: true,
-                code: 400, //! this should be changed later, on how axios works
-                details: err
-            }
-        };
-        throw new Error(err);
-    });
-
-    return fetch_response;
-};
-
-
 let MAIN_WINDOW;
-let SPOTIFY_AUTH_WINDOW;
-
-
-const createWindow = async () => {
-    MAIN_WINDOW = new BrowserWindow({
-        width: 800,
-        height: 600,
-        webPreferences: {
-            preload: path.join(__dirname, "/src/scripts/preload.js"),
-            minimumFontSize: 10
-        },
-        movable: true,
-        icon: "./public/img/favicon.ico",
-        frame: true,
-        show: false,
-        backgroundColor: "#fff",
-        titleBarStyle: "hidden",
-        titleBarOverlay: {
-            color: "#3f9bef",
-            symbolColor: "#fff"
-        },
-    });
-
-    MAIN_WINDOW.webContents.openDevTools();
-    MAIN_WINDOW.setBounds({x: 640, y: 1600, width: 1270, height: 1080});
-    // main_window.center();
-    MAIN_WINDOW.loadFile("./pages/index.html");
-    MAIN_WINDOW.on("ready-to-show", () => {
-        MAIN_WINDOW.show();
-    });
-
-};
-
-//TODO: CREATE "GET SESSION DATA" METHOD FOR SENDING COOKIES & SESSIONID IN FETCH
-
-
 //_ SESSION MAINTENANCE
 let ELECTRON_SESSION;
 
 
-app.on("ready", async ()  => {
-    loadCssPreprocessors();
-    await createWindow();
+//_ APP MAINTENANCE
+app.on("ready", async () => {
 
-    app.on("activate", async () => {
-        //* for mac users
-        loadCssPreprocessors();
-        if (BrowserWindow.getAllWindows().length === 0) {
-            await createWindow();
-        };
+    loadCSS();
+
+    MAIN_WINDOW = createMainWindow();
+    await MAIN_WINDOW.loadFile("./pages/index.html");
+
+    await INTEGRATOR_INSTANCE().request({
+        method: "GET",
+        url: "/init",
+    })
+    .then((res) => {
+        MAIN_WINDOW.webContents.send("init", {
+            ...res.data
+        });
+        MAIN_WINDOW.show();
+        ELECTRON_SESSION = session.fromPartition("persist:test");
+        console.log(ELECTRON_SESSION.getUserAgent());
+    })
+    .catch((err) => {
+        console.error(`ERROR: CAN'T START APPLICATION \n${err}`);
     });
-
-    ELECTRON_SESSION = session.fromPartition("persist:test");
-    console.log(ELECTRON_SESSION.getUserAgent());
 
 });
 
 
 app.on("window-all-closed", () => {
 
-    if (process.platform !== "darwin") {
-        app.quit();
-    };
+    if (process.platform !== "darwin") app.quit(); //* for mac users
 
 });
 
 
 //_ EVENT HANDLERS
 ipcMain.on("SpotifyAuth", async (event, page_url, session_id) => {
+    const SPOTIFY_AUTH_WINDOW = createSpotifyAuthWindow(page_url);
 
-    SPOTIFY_AUTH_WINDOW = new BrowserWindow({
-        width: 800,
-        height: 600,
-        parent: MAIN_WINDOW,
-        icon: "./public/img/favicon.ico"
-    });
+    // axios.get(`${process.env.EXPRESS_BACKEND_API_URL}/spotify/tokens?sessionID=${session_id}`)
+    //     .then(async (res) => {
 
-    SPOTIFY_AUTH_WINDOW.center();
-    SPOTIFY_AUTH_WINDOW.loadURL(page_url);
-    SPOTIFY_AUTH_WINDOW.on("ready-to-show", () => {
-        SPOTIFY_AUTH_WINDOW.show();
-    });
+    //         console.log(res.data);
+    //         await MAIN_WINDOW.loadFile("./pages/data.html");
+    //         SPOTIFY_AUTH_WINDOW.close();
 
-    await axios.get(`${process.env.EXPRESS_BACKEND_API_URL}/spotify/tokens?sessionID=${session_id}`)
-        .then(async (res) => {
-
-            console.log(res.data);
-            await MAIN_WINDOW.loadFile("./pages/data.html");
-            SPOTIFY_AUTH_WINDOW.close();
-
-        })
-        .catch((err) => {
-
-            console.error(`ERROR: ${err}`);
-            
-        });
-
-    //TODO: CREATE A GENERAL AXIOS INSTANCE WITH SESSIONID INCLUDED
+    //     })
+    //     .catch((err) => {
+    //         console.error(`ERROR: ${err}`);     
+    //     });
 
 });
 
 
-ipcMain.handle("fetch", async (event, url, request_data, sessionID, cookies, verb) => {
-    return await fetch(url, request_data, sessionID, cookies, verb);
+ipcMain.handle("fetch", async (event, url, request_data, query_params, verb) => {
+    let response = {
+        error: {
+            present: false,
+            code: 0,
+            details: null
+        }
+    };
+
+    await INTEGRATOR_INSTANCE().request({
+        method: verb,
+        url: url,
+        data: request_data,
+        params: query_params
+    }).then((res) => {
+        response = {
+            ...response,
+            data: res.data,
+            error: {
+                code: res.status
+            }
+        };
+    }).catch((err) => {
+        if (err.response) {
+            response.error = {
+                present: true,
+                code: err.response.status,
+                details: err.response.data
+            };
+        } else if (err.request) {
+            response.error = {
+                present: true,
+                code: 500,
+                details: err.request
+            };
+        } else {
+            response.error = {
+                present: true,
+                code: 500,
+                details: err.message
+            };
+        }
+
+        throw new Error(JSON.stringify(response.error));
+    });
+
+    return response;
 });
 
 

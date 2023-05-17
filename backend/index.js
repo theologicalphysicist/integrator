@@ -13,14 +13,15 @@ import MongoStore from "connect-mongo";
 //_ ROUTERS
 import NOTION_ROUTER from "./routers/notion.js";
 import SPOTIFY_ROUTER from "./routers/spotify.js";
+import GITHUB_ROUTER from "./routers/github.js";
 
 //_ LOCAL
 import { MONGODB_URL } from "./utils/const.js";
-import { GENERIC_ERROR_MESSAGE } from "./utils/error.js";
+import { ERROR_MESSAGE } from "./utils/error.js";
 import {RequestLoggerFormat, ResponseLoggerFormat} from "./utils/logger.js";
 import { generateRandomString } from "./utils/func.js";
+
 import { MONGODB_CLIENT } from "./apis/clients.js";
-import {getGithubIssues, getGithubRepositories, getGithubRepositoryLanguages} from "./apis/productivity/github.js"
 
 const app = Express();
 const STORE = MongoStore.create({
@@ -65,41 +66,31 @@ app.get("/", (req, res) => {
 
 
 app.get("/init", async (req, res, next) => {
-
-
-    // try {
-
-        const COOKIE_ID = generateRandomString(7);
-        req.session.cookieID = COOKIE_ID;
-        req.session.save((err) => {
-            if (err) next({
-                ...GENERIC_ERROR_MESSAGE,
-                details: err
-            });
+    const COOKIE_ID = generateRandomString(7);
+    
+    req.session.cookieID = COOKIE_ID;
+    req.session.save((err) => {
+        if (err) next({
+            ...ERROR_MESSAGE(500),
+            details: err
         });
+    });
 
-        res
-            .cookie("test", JSON.stringify({
-                    ...req.session.cookie,
-                    cookieID: COOKIE_ID
-                })
-            )
-            .send({
-                result: true,
-                message: "SESSION INITIALISED",
-                id: req.session.id,
-                cookies: {
-                    ...req.session.cookie,
-                    cookieID: COOKIE_ID
-                }
-            });
-
-
-
-    // } catch (err) {
-    //     next({ERROR: "NOT WORKING"});
-    // };
-
+    res
+        .cookie("test", JSON.stringify({
+                ...req.session.cookie,
+                cookieID: COOKIE_ID
+            })
+        )
+        .json({
+            result: true,
+            message: "SESSION INITIALISED",
+            id: req.session.id,
+            cookies: {
+                ...req.session.cookie,
+                cookieID: COOKIE_ID
+            }
+        });
 });
 
 
@@ -154,45 +145,21 @@ app.use("/spotify", SPOTIFY_ROUTER);
 
 
 //_ MICROSOFT
+
+
 //_ GITHUB
-app.get("/github_repositories", async (req, res, next) => {
-    if (!req.query.username) {
-        res.status(400).json(ERROR_MESSAGES.BAD_REQUEST);
-    } else {
-        res.send(await getGithubRepositories(req.query.username).catch(next));
-    }
-
-});
+app.use("/github", GITHUB_ROUTER)
 
 
-app.get("/github_repository_issues", async (req, res, next) => {
-    if (!req.query.username || !req.query.repository) {
-        res.status(400).json(ERROR_MESSAGES.BAD_REQUEST);
-    } else {
-        const RESPONSE = await getGithubIssues(req.query.username, req.query.repository).catch(next);
-        res.send(RESPONSE);
-    }
-});
-
-
-app.get("/github_repository_languages", async (req, res, next) => {
-    console.log(req.query.repositories);
-    if (!req.query.username || !req.query.repositories) {
-        res.status(400).json(ERROR_MESSAGES.BAD_REQUEST);
-    } else {
-
-        const RESPONSE = await getGithubRepositoryLanguages(req.query.username, req.query.repositories);
-        res.status(200).send(RESPONSE);
-    };
-});
+//TODO: CONSIDER WRAP-RESPONSE FUNCTION FOR ALL API FUNCS
 
 
 //_ CONFIG
 //_ ERROR HANDLING
 app.use((err, req, res, next) => {
-    console.error(err);
+    console.error({err});
 
-    res.send({error: err});
+    res.status(err.statusCode || 500).json({error: err});
 });
 
 //_ SERVER

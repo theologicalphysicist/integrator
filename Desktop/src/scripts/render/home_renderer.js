@@ -17,14 +17,18 @@ renderer.LeaveApp((event) => {
 
 
 const DataFetchFunctions = () => {
+    localStorage.removeItem("recentFetch");
+    localStorage.removeItem("NotionFetchData");
+    localStorage.removeItem("GithubFetchData");
     const NOTION_FETCH_COMMAND = document.getElementById("notion_fetch");
     NOTION_FETCH_COMMAND.onclick = async (event) => {
-        console.log(event);
         const NOTION_DATABASE_RES = await renderer.fetch(
             `/notion`,
             null,
-            localStorage.getItem("sessionID"),
-            JSON.parse(localStorage.getItem("cookies")),
+            {
+                sessionID: localStorage.getItem("sessionID"),
+                cookies: JSON.parse(localStorage.getItem("cookies")),
+            },
             "GET"
         );
 
@@ -38,8 +42,10 @@ const DataFetchFunctions = () => {
         const AUTH_URL = await renderer.fetch(
             `/spotify/authorization`,
             null,
-            localStorage.getItem("sessionID"),
-            JSON.parse(localStorage.getItem("cookies")),
+            {
+                sessionID: localStorage.getItem("sessionID"),
+                cookies: JSON.parse(localStorage.getItem("cookies")),
+            },
             "GET"
         );
 
@@ -51,26 +57,38 @@ const DataFetchFunctions = () => {
 
     const GITHUB_FETCH_COMMAND = document.getElementById("github_fetch");
     GITHUB_FETCH_COMMAND.onclick = async (event) => {
-        console.log(event);
-        const RES = await (await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/github_repositories?username=${renderer.GITHUB_USERNAME}`)).json();
-        console.log(RES);
-        localStorage.setItem("recentFetch", "GITHUB");
-        localStorage.setItem("GithubFetchData", JSON.stringify(RES));
-        location.href = "../pages/data.html";
+        await renderer.fetch(
+            "/github/repositories",
+            null,
+            {
+                sessionID: localStorage.getItem("sessionID"),
+                cookies: JSON.parse(localStorage.getItem("cookies")),
+                username: renderer.GITHUB_USERNAME
+            },
+            "GET"
+        )
+        .then((res) => {
+            console.log(res);
+            localStorage.setItem("recentFetch", "GITHUB");
+            sessionStorage.setItem("test", "123");
+            localStorage.setItem("GithubFetchData", JSON.stringify(res.data));
+            // location.href = "../pages/data.html";
+        })
+        .catch((err) => {
+            console.error(err);
+        });
+
     };
 };
 
 
+renderer.init((event, res) => {
+    localStorage.setItem("sessionID", res.id);
+    localStorage.setItem("cookies", JSON.stringify(res.cookies));
+});
+
+
 const HomePageRender = async () => {
-    renderer.fetch("/init", null, null, null, "GET")
-        .then((res) => {
-            console.log(res);
-            localStorage.setItem("sessionID", res.data.id);
-            localStorage.setItem("cookies", JSON.stringify(res.data.cookies));
-        })
-        .catch((err) => {
-            console.error(`ERROR: ${err}`);
-        });
     
     NAVIGATION_BAR.innerHTML += Navbar({
         current: "Home",

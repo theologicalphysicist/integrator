@@ -22,7 +22,16 @@ const loadGithubRepositoryData = async (repo_names) => {
 
     repo_names.forEach((r_n) => {repo_query_string += `&repositories=${r_n}`;});
 
-    const LANGUAGES_RES = await (await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/github_repository_languages?username=${renderer.GITHUB_USERNAME}${repo_query_string}`)).json();
+    const LANGUAGES_RES = await renderer.fetch(
+        "/github/repository/languages",
+        null,
+        {
+            sessionID: localStorage.getItem("sessionID"),
+            cookies: JSON.parse(localStorage.getItem("cookies")),
+            username: renderer.GITHUB_USERNAME
+        },
+        "GET"
+    );
 
     return LANGUAGES_RES;
 };
@@ -32,8 +41,10 @@ const LoadSpotifyData = async () => {
     const PLAYLIST_RES = await renderer.fetch(
         "/spotify/playlists",
         null,
-        localStorage.getItem("sessionID"),
-        JSON.parse(localStorage.getItem("cookies")),
+        {
+            sessionID: localStorage.getItem("sessionID"),
+            cookies: JSON.parse(localStorage.getItem("cookies")),
+        },
         "GET"
     );
     
@@ -54,15 +65,24 @@ const DataPageRender = async () => {
     });
 
     switch (localStorage.getItem("recentFetch")) {
+
         case "SPOTIFY":
+
             LoadSpotifyData();
+
             break;
+
         case "NOTION":
+
             fetched = JSON.parse(localStorage.getItem("NotionFetchData"));
             if (fetched) LOAD_DATA_AREA.innerHTML = NotionDBGrid(fetched, "database_grid");
+
             break;
+
         case "GITHUB": //TODO: REFACTOR THIS!
+
             fetched = JSON.parse(localStorage.getItem("GithubFetchData"));
+
             const REPO_NAMES = fetched.map((f) => f.repoName);
             const REPO_LANGUAGES = await loadGithubRepositoryData(REPO_NAMES);
             LOAD_DATA_AREA.innerHTML = fetched ? GithubDataGrid(fetched, "database_grid", REPO_LANGUAGES) : null;
@@ -72,8 +92,8 @@ const DataPageRender = async () => {
                 for (const LANGS in REPO_LANGUAGES[REPO]) {
                     const TOTAL = sum(Object.values(REPO_LANGUAGES[REPO]));
                     const CURRENT_SPAN = document.getElementById(`${REPO}_${LANGS}`);
+
                     CURRENT_SPAN.style.backgroundColor = LANGUAGE_COLOURS[LANGS];
-                    console.log(((REPO_LANGUAGES[REPO][LANGS] / TOTAL) * 100) + "%");
                     CURRENT_SPAN.style.width = ((REPO_LANGUAGES[REPO][LANGS] / TOTAL) * 100) + "%";
                 }
             };

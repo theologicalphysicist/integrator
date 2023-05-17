@@ -1,11 +1,15 @@
-export const getNotionDatabaseDetails = async (notion_client, notion_token, db_id) => {
+import { wrapResponse } from "../../utils/func.js";
 
+export const getNotionDatabaseDetails = async (notion_client, db_id) => {
     let finished = false;
     let next_cursor = undefined;
+    let error = {
+        present: false,
+        details: null
+    };
     let data = [];
 
-    const ProcessNotionData = (data) => {
-
+    const processResponse = (data) => {
         let items = [];
 
         data.results.forEach((i) => {
@@ -22,29 +26,42 @@ export const getNotionDatabaseDetails = async (notion_client, notion_token, db_i
     };
 
     while (!finished) {
-
-        const RES = await notion_client(notion_token).databases.query({
+        await notion_client.databases.query({
             database_id: db_id,
             page_size: 100,
             start_cursor: next_cursor
+        })
+        .then((notion_res) => {
+
+            data.push(...processResponse(notion_res));
+
+            finished = !notion_res.has_more;
+            if (!finished) next_cursor = notion_res.next_cursor;
+        })
+        .catch((err) => {
+            console.error(err);
+
+            finished = true;
+
+            error = {
+                present: true,
+                details: err
+            };
         });
-
-        data.push(...ProcessNotionData(RES));
-        finished = !RES.has_more;
-
-        if (!finished) {
-            next_cursor = RES.next_cursor;
-        };
-
     };
 
-    return data;
-}
+    return wrapResponse(error, data);
+};
 
 
-export const getAllNotionDatabases = async (notion_client, notion_token) => {
+export const getAllNotionDatabases = async (notion_client) => {
+    let error = {
+        present: false,
+        details: null
+    };
+    let data = {};
 
-    const ProcessNotionDBData = (data) => {
+    const processResponse = (data) => {
         let items = [];
 
         data.results.forEach((i) => {
@@ -58,12 +75,26 @@ export const getAllNotionDatabases = async (notion_client, notion_token) => {
         return items;
     };
 
-    const RES = await notion_client(notion_token).search({
+    await notion_client.search({
         filter: {
             value: "database",
             property: "object"
         }
+    })
+    .then((notion_res) => {
+
+        data = processResponse(notion_res);
+
+    })
+    .catch((err) => {
+        console.error(err);
+
+        error = {
+            present: true,
+            details: err
+        };
     });
 
-    return ProcessNotionDBData(RES);;
-}
+    return wrapResponse(error, data);
+};
+

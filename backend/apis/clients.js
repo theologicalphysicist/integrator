@@ -2,6 +2,7 @@ import axios from "axios";
 
 import { MongoClient } from "mongodb";
 import { Client } from "@notionhq/client";
+import { Octokit } from "octokit";
 
 import { SPOTIFY_ACCOUNTS_URL, SPOTIFY_API_URL } from "../utils/const.js";
 
@@ -39,4 +40,9 @@ export const MONGODB_CLIENT = async (username, password) => {
 
 export const NOTION_CLIENT = (token) => new Client({
     auth: token,
+});
+
+
+export const GITHUB_CLIENT = new Octokit({
+    auth: process.env.GITHUB_ACCESS_TOKEN,
 });
