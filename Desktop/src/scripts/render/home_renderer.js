@@ -1,64 +1,168 @@
 import {IntroductionParagraph, IntegrationSection} from "../components/home.js";
-import {Title, NAVIGATION_BAR, Navbar} from "./global_renderer.js";
+import {Title, NAVIGATION_BAR, Navbar, ErrorModal} from "../components/global.js";
 
+
+//_ WINDOW CONTAINERS
 const TITLE_AREA = document.getElementById("main_title");
 const INTRO_AREA = document.getElementById("intro_area");
 const PRODUCTIVITY_SELECTION_TITLE = document.getElementById("productivity_selection_title");
 const PRODUCTIVITY_SELECTION_AREA = document.getElementById("productivity_selection_area");
 const MEDIA_SELECTION_TITLE = document.getElementById("media_selection_title");
 const MEDIA_SELECTION_AREA = document.getElementById("media_selection_area");
+const EXIT_BUTTON = document.getElementById("exit_app");
+const MODAL_CONTAINER = document.getElementById("modal_container");
+const MAIN = document.getElementById("main");
 
+
+//_ EVENT HANDLING
+if (window.renderer) { //*  incase of web front-end
+
+    renderer.LeaveApp((event) => {
+
+        localStorage.clear();
+
+    });
+
+
+    renderer.fetchError(async (event, error_res) => {
+
+        if (MODAL_CONTAINER.hidden) {
+
+            MODAL_CONTAINER.innerHTML += ErrorModal(error_res);
+
+            MODAL_CONTAINER.hidden = false;
+            MODAL_CONTAINER.style.display = "flex";
+
+            const CLOSE_ERROR_MODAL = document.getElementById("close_modal");
+            CLOSE_ERROR_MODAL.onclick = (event) => {
+
+                MODAL_CONTAINER.hidden = true;
+                MODAL_CONTAINER.innerHTML = "";
+                MODAL_CONTAINER.style.display = "none";
+
+            };
+
+        }
+
+    });
+
+    renderer.init((event, res) => {
+
+        localStorage.clear();
+        localStorage.setItem("sessionID", res.id);
+        localStorage.setItem("cookies", JSON.stringify(res.cookies));
+
+    });
+
+};
+
+
+function testModal(error_res) {
+
+    if (MODAL_CONTAINER.hidden) {
+
+        MODAL_CONTAINER.innerHTML += ErrorModal(error_res || {
+            code: 500,
+            error: "INTERNAL SERVER ERROR",
+            details: "mock error. ignore this."
+        }); //* either display error, or test error
+
+        MODAL_CONTAINER.hidden = false;
+
+        const CLOSE_ERROR_MODAL = document.getElementById("close_modal");
+        CLOSE_ERROR_MODAL.onclick = (event) => {
+
+            MODAL_CONTAINER.hidden = true;
+            MODAL_CONTAINER.innerHTML = null;
+
+        };
+        
+    };
+
+};
+
+
+//_ PAGE RENDERING
 const DataFetchFunctions = () => {
     const NOTION_FETCH_COMMAND = document.getElementById("notion_fetch");
     NOTION_FETCH_COMMAND.onclick = async (event) => {
-        console.log(event);
-        const res = await (await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/notion_db`)).json();
-        console.log(res);
-        localStorage.setItem("recentFetch", "NOTION");
-        localStorage.setItem("NotionFetchData", JSON.stringify(res));
+
+        if (localStorage.getItem("recentFetch") != "NOTION") {
+            const NOTION_DATABASE_RES = await renderer.fetch(
+                `/notion`,
+                null,
+                {
+                    sessionID: localStorage.getItem("sessionID"),
+                    cookies: JSON.parse(localStorage.getItem("cookies")),
+                },
+                "GET"
+            );
+
+            localStorage.setItem("recentFetch", "NOTION");
+            localStorage.setItem("NotionFetchData", JSON.stringify(NOTION_DATABASE_RES.data));
+        };
+
         location.href = "../pages/data.html";
-    }
+
+    };
 
     const SPOTIFY_FETCH_COMMAND = document.getElementById("spotify_fetch");
     SPOTIFY_FETCH_COMMAND.onclick = async (event) => {
-        const AUTH_RES = await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/spotify/?redirectURI=${renderer.EXPRESS_BACKEND_API_URL}/spotify_callback`, {
-            method: "GET",
-            mode: "cors",
-            credentials: "include",
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json"
-            }
-        });
-        window.open(AUTH_RES.url, "_blank");
-        console.log(AUTH_RES);
-        const AUTH_RES_STATUS = await AUTH_RES.json();
-        console.log(AUTH_RES_STATUS);
-        let spotify_tokens;
-        if (AUTH_RES_STATUS.authStatus) {
-            const TOKEN_RES = await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/spotify_tokens/?queryCode=${AUTH_RES_STATUS.queryCode}`, {
-                method: "GET",
-                mode: "cors",
-                credentials: "include",
-                headers: {
-                    Accept: "application/json",
-                    "Content-Type": "application/json"
-                },
-            });
-            console.log("HERE");
-            spotify_tokens = await TOKEN_RES.json();
-            console.log("HERE");
-            localStorage.setItem("recentFetch", "SPOTIFY");
-            localStorage.setItem("SpotifyTokens", JSON.stringify(spotify_tokens));
-            localStorage.setItem("SpotifyQueryCode", AUTH_RES_STATUS.queryCode);
-            location.href = "./data.html";
-        } else {
-            console.log("AUTHORISATION UNSUCCESSFUL");
-        }
-    }
-} 
 
-const HomePageRender = () => {    
+        if (localStorage.getItem("recentFetch") != "SPOTIFY") {
+            const AUTH_URL = await renderer.fetch(
+                `/spotify/authorization`,
+                null,
+                {
+                    sessionID: localStorage.getItem("sessionID"),
+                    cookies: JSON.parse(localStorage.getItem("cookies")),
+                },
+                "GET"
+            );
+
+            localStorage.setItem("recentFetch", "SPOTIFY");
+            renderer.SpotifyAuth(AUTH_URL.data, localStorage.getItem("sessionID"));
+
+        } else {
+            location.href = "../pages/data.html";
+        };
+
+    };
+
+    const GITHUB_FETCH_COMMAND = document.getElementById("github_fetch");
+    GITHUB_FETCH_COMMAND.onclick = async (event) => {
+
+        if (localStorage.getItem("recentFetch") != "GITHUB") {
+
+            await renderer.fetch(
+                "/github/repositories",
+                null,
+                {
+                    sessionID: localStorage.getItem("sessionID"),
+                    cookies: JSON.parse(localStorage.getItem("cookies")),
+                    username: renderer.GITHUB_USERNAME
+                },
+                "GET"
+            )
+            .then((res) => {
+                localStorage.setItem("recentFetch", "GITHUB");
+                localStorage.setItem("GithubFetchData", JSON.stringify(res.data));
+
+                location.href = "../pages/data.html";
+            });
+
+        } else {
+            location.href = "../pages/data.html"
+        };
+
+    };
+
+};
+
+
+const renderPage = async () => {
+    
+    //_ GENERAL PAGE COMPONENTS
     NAVIGATION_BAR.innerHTML += Navbar({
         current: "Home",
         links: {
@@ -70,6 +174,8 @@ const HomePageRender = () => {
 
     TITLE_AREA.innerHTML = Title("Integrator");
     INTRO_AREA.innerHTML = IntroductionParagraph();
+
+    //_ INTEGRATIONS
     PRODUCTIVITY_SELECTION_TITLE.innerHTML = `
         <h2>Productivity Integrations</h2>
     `;
@@ -92,31 +198,30 @@ const HomePageRender = () => {
             )}
         </div>
         <div class="integration-row">
-            ${IntegrationSection(
-                {
-                    sectionID: "focus_section",
-                    appName: "Focus Todo",
-                    appImage: "focus-logo.jpeg",
-                    buttonID: "focus_fetch"
-                }
-            )+ IntegrationSection(
-                {
-                    sectionID: "pomotodo_section",
-                    appName: "Pomotodo",
-                    appImage: "pomotodo-logo.jpeg",
-                    buttonID: "pomotodo_fetch"
-                }
-            )}
+            ${IntegrationSection({
+                sectionID: "focus_section",
+                appName: "Focus Todo",
+                appImage: "focus-logo.jpeg",
+                buttonID: "focus_fetch"
+            }) + IntegrationSection({
+                sectionID: "pomotodo_section",
+                appName: "Pomotodo",
+                appImage: "pomotodo-logo.jpeg",
+                buttonID: "pomotodo_fetch"
+            })}
         </div>
         <div class="integration-row">
-            ${IntegrationSection(
-                {
-                    sectionID: "todo_section",
-                    appName: "Microsoft Todo",
-                    appImage: "todo-logo.png",
-                    buttonID: "todo_fetch"
-                }
-            )}
+            ${IntegrationSection({
+                sectionID: "todo_section",
+                appName: "Microsoft Todo",
+                appImage: "todo-logo.png",
+                buttonID: "todo_fetch"
+            }) + IntegrationSection({
+                sectionID: "github_section",
+                appName: "Github",
+                appImage: "github-logo.png",
+                buttonID: "github_fetch"
+            })}
         </div>
     `;
     MEDIA_SELECTION_TITLE.innerHTML = `
@@ -138,7 +243,20 @@ const HomePageRender = () => {
             })}
         </div>
     `;
-    DataFetchFunctions();
-}
 
-HomePageRender();
+    if (window.renderer) { //* for web front-end
+        DataFetchFunctions();
+    } else {
+        //* for error testing purposes
+        const FETCH_COMMANDS = document.querySelectorAll("button[id*='fetch']"); //* all buttons for querying backend for resources
+        FETCH_COMMANDS.forEach((f_c) => {
+            f_c.onclick = (event) => {
+                testModal();
+            };
+        });
+    };
+
+};
+
+
+await renderPage();

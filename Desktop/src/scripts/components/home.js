@@ -24,7 +24,8 @@ const IntroductionParagraph = () => {
         "Focus To-do",
         "Pomodone",
         "Pomotodo",
-        "Microsoft To-do"
+        "Microsoft To-do",
+        "Github"
     ];
 
     return (`
@@ -42,7 +43,7 @@ const IntegrationSection = (props) => {
             </div>
             <p>Fetch & view data from ${props.appName}</p>
             <div class="button-container">
-                <button id="${props.buttonID}">Fetch</button>
+                <button id="${props.buttonID}">FETCH</button>
             </div>
         </div>
     `);

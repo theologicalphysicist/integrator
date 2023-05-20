@@ -1,101 +1,124 @@
-const {app, BrowserWindow, ipcMain, BrowserView} = require("electron");
-const path = require("path");
-const sass = require("sass");
-const fs = require("fs");
-const jsdom = require("jsdom");
-const shell = require("electron").shell;
-const { JSDOM } = jsdom;
+const {app, ipcMain, session} = require("electron");
 
+//_ LOCAL
+const {INTEGRATOR_INSTANCE, formatError} = require("./src/utils.js");
+const { MainWindow, AuthWindow } = require("./src/windows.js");
+
+//_ DYNAMIC INPORTS
+let queryString;
+import("query-string")
+    .then((module_obj) => {
+        queryString = module_obj.default
+    })
+    .catch((err) => console.error(`ERROR LOADING MODULE QUERY STRING: ${err}`));
+
+//_ LOAD ENVIRONMENT
 if (process.env.NODE_ENV !== "production") {
-    require("dotenv").config();
-    // try {
-    //     require("electron-reloader")(module, {
-    //         debug: true,
-    //         watchRenderer: true
-    //     });
-    // } catch (_) {console.log(_)}
-}
-
-const loadCssPreprocessors = () => {
-    const home_res = sass.compile(path.join(__dirname, "/src/styles/scss/home/home.scss"));    
-    fs.writeFile(
-        path.join(__dirname, "/src/styles/home.css"), 
-        home_res.css, 
-        (err) => {
-            if (err) {console.log(err)}
-        }
-    );
-
-    const productivity_res = sass.compile(path.join(__dirname, "/src/styles/scss/data/data.scss"));
-    fs.writeFile(
-        path.join(__dirname, "/src/styles/data.css"), 
-        productivity_res.css, 
-        (err) => {
-            if (err) {console.log(err)}
-        }
-    );
-
-    const media_res = sass.compile(path.join(__dirname, "./src/styles/scss/media/media.scss"));
-    fs.writeFile(
-        path.join(__dirname, "/src/styles/media.css"), 
-        media_res.css, 
-        (err) => {
-            if (err) {console.log(err)}
-        }
-    );
-}
-
-let main_window;
-const createWindow = async () => {
-    main_window = new BrowserWindow({
-        width: 800,
-        height: 600,
-        webPreferences: {
-            preload: path.join(__dirname, "/src/scripts/preload.js"),
-            // devTools: true,
-            // plugins: true,
-            minimumFontSize: 10
-        },
-        movable: true,
-        icon: "./public/img/favicon.ico",
-        frame: false,
-        show: false,
-        backgroundColor: "#fff",
-        titleBarStyle: "hidden",
-        titleBarOverlay: {
-            color: "#3f9bef",
-            symbolColor: "#fff"
-        },
+    require("dotenv").config({
+        debug: true,
+        path: "./.env.local",
     });
-    main_window.webContents.openDevTools();
-    main_window.setBounds({x: 1620, y: 1700, width: 1200, height: 600});
-    main_window.center();
-    main_window.loadFile("./pages/index.html");
-    main_window.on("ready-to-show", () => {
-        main_window.show();
-    });
-    ipcMain.handle("bing", () => "bong");
+};
 
-    ipcMain.on("SpotifyAuth", (event, url, filestring) => {
-        console.log(event);
-        shell.openExternal(url);
-    });
-}
 
-app.whenReady().then(()  => {
-    loadCssPreprocessors();
-    createWindow();
+let MAIN_WINDOW;
+//_ SESSION MAINTENANCE
+let ELECTRON_SESSION;
 
-    app.on("activate", () => {
-        loadCssPreprocessors();
-        if (BrowserWindow.getAllWindows().length === 0) {
-            createWindow();
-        }
+
+//_ APP MAINTENANCE
+app.on("ready", async () => {
+
+    MAIN_WINDOW = MainWindow();
+    await MAIN_WINDOW.loadFile("./pages/index.html");
+
+    await INTEGRATOR_INSTANCE().request({
+        method: "GET",
+        url: "/init",
+    })
+    .then((res) => {
+        MAIN_WINDOW.webContents.send("init", {
+            ...res.data
+        });
+        MAIN_WINDOW.show();
+        ELECTRON_SESSION = session.fromPartition("persist:test");
+        console.log(ELECTRON_SESSION.getUserAgent());
+    })
+    .catch((err) => {
+        console.error(`ERROR: CAN'T START APPLICATION \n${err}`);
     });
+
 });
+
+
 app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") app.quit();
+
+    if (process.platform !== "darwin") app.quit(); //* for mac users
+
 });
-app.on("session-created", (ses) => {
-    // console.log({ses});
+
+
+//_ IPC EVENT HANDLERS
+ipcMain.on("SpotifyAuth", async (event, page_url, session_id) => {
+    const SPOTIFY_AUTH_WINDOW = AuthWindow(page_url, MAIN_WINDOW);
+
+    INTEGRATOR_INSTANCE().get(`${process.env.EXPRESS_BACKEND_API_URL}/spotify/tokens?sessionID=${session_id}`)
+        .then(async (res) => {
+
+            await MAIN_WINDOW.loadFile("./pages/data.html");
+
+        })
+        .catch((err) => {
+            const ERROR_RES = formatError(event, err)   
+            console.log(ERROR_RES.error);
+
+            event.sender.send("fetchError", {
+                ...ERROR_RES.error
+            });
+
+            throw new Error(JSON.stringify(ERROR_RES.error));
+        });
+
 });
+
+
+ipcMain.handle("fetch", async (event, url, request_data, query_params, verb) => {
+    let response = {
+        error: {
+            present: false,
+            code: 0,
+            details: null,
+            error: null
+        }
+    };
+
+    await INTEGRATOR_INSTANCE().request({
+        method: verb,
+        url: url,
+        data: request_data,
+        params: query_params
+    }).then((res) => {
+        response = {
+            data: res.data,
+            error: {
+                ...response.error,
+                code: res.status
+            }
+        };
+    }).catch((err) => {
+        response = formatError(event, err);
+
+        console.log(response.error);
+
+        event.sender.send("fetchError", {
+            ...response.error
+        });
+
+        throw new Error(JSON.stringify(response.error));
+    });
+
+    return response;
+});
+
+
+ipcMain.on("LeaveApp", (event) => app.quit());

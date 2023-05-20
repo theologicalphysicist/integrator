@@ -1,6 +1,7 @@
 @use "../title";
 @use "../nav";
 @use "../utils";
+@use "../global";
 
 body {
     font-family: Ubuntu;
@@ -11,95 +12,89 @@ hr {
     background-color: #333;
 }
 
-section#main_area {
-    height: 100%;
-    width: 100%;
-    font-family: "Manjari Thin";
-    div#intro_area {
-        padding: 16px 16px;
-        background-color: #fff;
-        height: max-content;
-        width: 70%;
-        margin: auto;
-        border: 1px solid #000;
-        border-radius: 4px;
-        box-shadow: 5px 5px #000;
-        p {
-            padding: 0px;
-            margin: 0px;
+div#main {
+    overflow-y: visible;
+    height: fit-content;
+
+    section#main_area {
+        height: 100%;
+        width: 100%;
+        font-family: "Manjari Thin";
+        div#intro_area {
+            padding: 16px 16px;
+            background-color: #fff;
+            height: max-content;
+            width: 70%;
+            margin: auto;
+            border: 1px solid #000;
+            border-radius: 4px;
+            box-shadow: 5px 5px #000;
+            p {
+                padding: 0px;
+                margin: 0px;
+            }
+            ul {
+                margin: 0px;
+            }
+            ul ul {
+                border: none;
+            }
         }
-        ul {
-            margin: 0px;
-        }
-        ul ul {
-            border: none;
-        }
-    }
-    div#productivity_selection_area, div#media_selection_area {
-        width: 80%;
-        margin: 0rem auto;
-        padding: 0rem 0.5rem;
-        display: block;
-        justify-content: space-around;
-        // border: utils.$debug-container;
-        div.integration-row {
-            display: flex;
+        div#productivity_selection_area, div#media_selection_area {
+            width: 80%;
+            margin: 0rem auto;
+            padding: 0rem 0.5rem;
+            display: block;
+            justify-content: space-around;
             // border: utils.$debug-container;
-            padding: 16px 0px;
-            div.integration-section {
-                display: block;
-                width: 40%;
-                padding: 0.5rem;
-                font-size: 1rem;
-                height: max-content;
-                margin: auto;
-                border: 1px solid utils.$main-colour;
-                border-radius: 5px;
-                box-shadow: 5px 5px utils.$main-colour;
-                h2 {
+            div.integration-row {
+                display: flex;
+                // border: utils.$debug-container;
+                padding: 16px 0px;
+                div.integration-section {
+                    display: block;
+                    width: 40%;
+                    padding: 0.5rem;
+                    font-size: 1rem;
+                    height: max-content;
                     margin: auto;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    font-size: 1.25rem;
-                    // border: utils.$debug-container;
-                }
-                div.image-container {
-                    width: 100%;
-                    height: fit-content;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    img {
-                        width: 100px;
-                        height: 100px;
+                    border: 1px solid utils.$main-colour;
+                    border-radius: 5px;
+                    box-shadow: 5px 5px utils.$main-colour;
+                    h2 {
+                        margin: auto;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        font-size: 1.25rem;
+                        // border: utils.$debug-container;
                     }
-                }
-                p {
-                    display: flex;
-                    justify-content: center;
-                    // border: utils.$debug-container;
-                    padding: 0px;
-                    margin-top: 8px;
-                    margin-bottom: 0px;
-                    font-size: 1em;
-                }
-                div.button-container {
-                    width: 100%;
-                    height: fit-content;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    button {
-                        border: none;
-                        background-color: utils.$main-colour;
-                        border-radius: 3px;
-                        padding: 8px 16px;
-                        font-size: 1rem;
+                    div.image-container {
+                        width: 100%;
+                        height: fit-content;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        img {
+                            width: 100px;
+                            height: 100px;
+                        }
                     }
-                    button:hover {
-                        // background-color: adjust-color($color: utils.$main-colour, $alpha: 0.5);
-                        filter: brightness(125%);
+                    p {
+                        display: flex;
+                        justify-content: center;
+                        // border: utils.$debug-container;
+                        padding: 0px;
+                        margin-top: 8px;
+                        margin-bottom: 0px;
+                        font-size: 1em;
+                    }
+                    div.button-container {
+                        width: 100%;
+                        height: fit-content;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
                     }
                 }
             }
