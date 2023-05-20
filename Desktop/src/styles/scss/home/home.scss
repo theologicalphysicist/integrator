@@ -95,17 +95,6 @@ div#main {
                         display: flex;
                         justify-content: center;
                         align-items: center;
-                        button {
-                            border: none;
-                            background-color: utils.$main-colour;
-                            border-radius: 3px;
-                            padding: 8px 16px;
-                            font-size: 1rem;
-                        }
-                        button:hover {
-                            // background-color: adjust-color($color: utils.$main-colour, $alpha: 0.5);
-                            filter: brightness(125%);
-                        }
                     }
                 }
             }

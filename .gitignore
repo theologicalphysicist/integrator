@@ -1,13 +1,26 @@
+#_ ALL
 node_modules/
 
 .env
 .env.local
 .env.me
+.env.vault
 
 .vscode
 
+#_ DESKTOP
 Desktop/src/styles/*.css
+Desktop/src/styles/*.css.map
 
-#- BACKEND
+Desktop/public/img
+Desktop/public/img
+Desktop/public/img
+
+#_ BACKEND
 */dist/
 */.parcel-cache/
+
+# .env*
+.flaskenv*
+!.env.project
+!.env.vault

@@ -1,13 +1,17 @@
 import queryString from "query-string";
 
-//- LOCAL
-import { SPOTIFY_ACCOUNTS_INSTANCE, SPOTIFY_API_INSTANCE } from "../clients.js";
+//_ LOCAL
+import { formatAxiosError, wrapResponse } from "../../utils/func.js";
 
 
-export const getAuthCode = async (code, client_id, client_secret, redirect_uri) => {
-    let token_response = {};
+export const getAuthCode = async (code, redirect_uri, spotify_accounts_client) => {
+    let error = {
+        present: false,
+        details: null
+    };
+    let data = {};
 
-    await SPOTIFY_ACCOUNTS_INSTANCE(client_id, client_secret).request({
+    await spotify_accounts_client.request({
         method: "post",
         url: "/api/token",
         data: queryString.stringify({
@@ -16,23 +20,31 @@ export const getAuthCode = async (code, client_id, client_secret, redirect_uri) 
             redirect_uri: redirect_uri
         }),
     }).then((token_res) => {
-        token_response = token_res.data;
+
+        data = token_res.data;
+
     }).catch((err) => {
-        console.log(`ERROR: ${err}`);
-        token_response = "ERROR";
+        error = {
+            present: true,
+            ...formatAxiosError(err)
+        };
     });
 
-    return token_response;
+    return wrapResponse(error, data);
 };
 
 
-export const getPlaylists = async (token_type, token) => {
-    let playlist_response = [];
+export const getPlaylists = async (spotify_api_client) => {
     let finished = false;
     let playlist_params = {
         limit: 50,
         offset: 0
     };
+    let error = {
+        present: false,
+        details: null
+    };
+    let data = [];
 
     const ProcessPlaylists = (res) => {
         let formatted_res = [];
@@ -54,47 +66,62 @@ export const getPlaylists = async (token_type, token) => {
 
     while (!finished) {
 
-        await SPOTIFY_API_INSTANCE(token_type, token).request({
+        await spotify_api_client.request({
             method: "get",
             url: "/me/playlists",
             params: playlist_params,
-        }).then((res) => { 
-            playlist_response = [...playlist_response, ...ProcessPlaylists(res.data.items)];
+        })
+        .then((playlist_res) => { 
 
-            if (res.data.next == null) {
+            data = [...data, ...ProcessPlaylists(playlist_res.data.items)];
+
+            if (playlist_res.data.next == null) {
                 finished = true;
             } else {
-                const NEXT_PARAMS = queryString.parseUrl(res.data.next).query;
-                playlist_params.offset = NEXT_PARAMS.offset;
+                playlist_params.offset = queryString.parseUrl(playlist_res.data.next).query.offset;
             };
 
-        }).catch((err) => {
-            console.log(`ERROR: ${err}`);
-            playlist_response = {err};
-            finished = true;
-        });
+        })
+        .catch((err) => {
 
+            error = {
+                present: true,
+                ...formatAxiosError(err)
+            };
+
+            finished = true;
+
+        });
     };
 
-    return playlist_response;
+    return wrapResponse(error, data);
 };
 
 
-export const refreshToken = async (r_token, client_id, client_secret) => {
-    let token_response = {};
+export const refreshToken = async (r_token, spotify_accounts_client) => {
+    let error = {
+        present: false,
+        details: null
+    };
+    let data = {};
 
-    await SPOTIFY_ACCOUNTS_INSTANCE(client_id, client_secret).request({
+    await spotify_accounts_client.request({
         method: "post",
         url: "/api/token",
         data: queryString.stringify({
             grant_type: "refresh_token",
             refresh_token: r_token
         })
-    }).then((res) => {
-        token_response = res.data;
+    }).then((token_res) => {
+
+        data = token_res.data;
+
     }).catch((err) => {
-        console.error(`ERRor: ${err}`);
+        error = {
+            present: true,
+            ...formatAxiosError(err)
+        };
     });
 
-    return token_response;
+    return wrapResponse(error, data);
 };

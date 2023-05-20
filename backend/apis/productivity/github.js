@@ -1,15 +1,15 @@
-import {Octokit} from "octokit";
+import { wrapResponse } from "../../utils/func.js";
 
-const OCTOKIT = new Octokit({
-    auth: process.env.GITHUB_ACCESS_TOKEN,
-});
-
-
-export const getGithubIssues = async (username, repository) => {
-    let res;
+export const getGithubIssues = async (username, repository, github_client) => {
+    let error = {
+        present: false,
+        details: null
+    };
+    let data = {};
 
     const processResponse = (g_r) => {
         let processed_response = [];
+
         g_r.forEach((r) => {
             processed_response.push({
                 issueTitle: r.title,
@@ -22,34 +22,38 @@ export const getGithubIssues = async (username, repository) => {
                 dateOfLastUpdate: r.updated_at
             });
         });
+
         return processed_response;
     };
 
-    try {
-        const GITHUB_RESPONSE = await OCTOKIT.request("GET /repos/{owner}/{repo}/issues", {
-            owner: username,
-            repo: repository,
-        });
-        res = processResponse(GITHUB_RESPONSE.data);
-        console.log(res);
-    } catch (error) {
-        console.error(error);
+    await github_client.request("GET /repos/{owner}/{repo}/issues", {
+        owner: username,
+        repo: repository,
+    })
+    .then((github_res) => {
+        data = processResponse(github_res.data);
+    })
+    .catch((err) => {
+        error = {
+            present: true,
+            details: err
+        };
+    });
+
+    return wrapResponse(error, data);
+};
+
+
+export const getGithubRepositories = async (username, github_client) => {
+    let error = {
+        present: false,
+        details: null
     };
-
-    //TODO: REFACTOR SO THAT PROPER ERROR HANDLING IS USED
-    if (res) {
-        return res;
-    } else {
-        return "ERROR";
-    };
-
-}
-
-export const getGithubRepositories = async (username) => {
-    let res;
+    let data = {};
 
     const processResponse = (g_r) => {
         let processed_res = [];
+
         g_r.forEach((r) => {
             r.archived ? null : processed_res.push({
                 repoName: r.name,
@@ -63,51 +67,79 @@ export const getGithubRepositories = async (username) => {
                 numberOfOpenIssues: r.open_issues_count
             });
         });
-        return processed_res;
-    }
 
-    try {
-        const GITHUB_RESPONSE = await OCTOKIT.request("GET /users/{username}/repos", {
-            username: username
-        });
-        console.log(GITHUB_RESPONSE);
-        res = processResponse(GITHUB_RESPONSE.data);
-        // res = GITHUB_RESPONSE;
-        // console.log(res);
-    } catch (error) {
-        console.error(error);
+        return processed_res;
     };
 
-    //TODO: REFACTOR SO THAT PROPER ERROR HANDLING IS USED
-    if (res) {
-        return res;
-    } else {
-        throw new Error;
-    }
+    await github_client.request("GET /users/{username}/repos", {
+        username: username
+    })
+    .then((github_res) => {
+
+        data = processResponse(github_res.data);
+
+    })
+    .catch((err) => { 
+        console.error({err});
+
+        error = {
+            present: true,
+            details: err
+        };
+        
+    });
+
+    return wrapResponse(error, data);
+
 };
 
 
-export const getGithubRepositoryLanguages = async (username, repositories) => {
-    let res = {};
-    try {
-        for (const R of repositories) {
-            const GITHUB_RESPONSE = await OCTOKIT.request("GET /repos/{owner}/{repo}/languages", {
-                owner: username,
-                repo: R
-            });
-            res[R] = GITHUB_RESPONSE.data;
-        };
+export const getGithubRepositoryLanguages = async (username, repositories, github_client) => {
+    let error = {
+        present: false,
+        details: null
+    };
+    let data = {};
 
-        console.log(res);
-    } catch (error) {
-        console.error(error);
-    }
+    for (const R of repositories) {
 
-    //TODO: REFACTOR SO THAT PROPER ERROR HANDLING IS USED
-    if (res) {
-        return res;
-    } else {
-        throw new Error;
-    }
+        await github_client.request("GET /repos/{owner}/{repo}/languages", {
+            owner: username,
+            repo: R
+        })    
+        .then((github_res) => {
+            data[R] = github_res.data;
+        })
+        .catch((err) => {
+            error = {
+                present: true,
+                details: err
+            };
+        });
 
-}
+    };
+
+    return wrapResponse(error, data);
+};
+
+
+export async function getRateLimit(github_client) {
+    let error = {
+        present: false,
+        details: null
+    };
+    let data = {};
+
+    await github_client.request("GET /rate_limit")
+        .then((github_res) => {
+            data = github_res.data;
+        })
+        .catch((err) => {
+            error = {
+                present: true,
+                details: err
+            };
+        });
+
+    return wrapResponse(error, data);
+};

@@ -1,7 +1,8 @@
 import {IntroductionParagraph, IntegrationSection} from "../components/home.js";
-import {Title, NAVIGATION_BAR, Navbar} from "./global_renderer.js";
+import {Title, NAVIGATION_BAR, Navbar, ErrorModal} from "../components/global.js";
 
 
+//_ WINDOW CONTAINERS
 const TITLE_AREA = document.getElementById("main_title");
 const INTRO_AREA = document.getElementById("intro_area");
 const PRODUCTIVITY_SELECTION_TITLE = document.getElementById("productivity_selection_title");
@@ -9,50 +10,159 @@ const PRODUCTIVITY_SELECTION_AREA = document.getElementById("productivity_select
 const MEDIA_SELECTION_TITLE = document.getElementById("media_selection_title");
 const MEDIA_SELECTION_AREA = document.getElementById("media_selection_area");
 const EXIT_BUTTON = document.getElementById("exit_app");
+const MODAL_CONTAINER = document.getElementById("modal_container");
+const MAIN = document.getElementById("main");
 
 
-renderer.LeaveApp((event) => {
-    localStorage.clear();
-});
+//_ EVENT HANDLING
+if (window.renderer) { //*  incase of web front-end
+
+    renderer.LeaveApp((event) => {
+
+        localStorage.clear();
+
+    });
 
 
+    renderer.fetchError(async (event, error_res) => {
 
+        if (MODAL_CONTAINER.hidden) {
+
+            MODAL_CONTAINER.innerHTML += ErrorModal(error_res);
+
+            MODAL_CONTAINER.hidden = false;
+            MODAL_CONTAINER.style.display = "flex";
+
+            const CLOSE_ERROR_MODAL = document.getElementById("close_modal");
+            CLOSE_ERROR_MODAL.onclick = (event) => {
+
+                MODAL_CONTAINER.hidden = true;
+                MODAL_CONTAINER.innerHTML = "";
+                MODAL_CONTAINER.style.display = "none";
+
+            };
+
+        }
+
+    });
+
+    renderer.init((event, res) => {
+
+        localStorage.clear();
+        localStorage.setItem("sessionID", res.id);
+        localStorage.setItem("cookies", JSON.stringify(res.cookies));
+
+    });
+
+};
+
+
+function testModal(error_res) {
+
+    if (MODAL_CONTAINER.hidden) {
+
+        MODAL_CONTAINER.innerHTML += ErrorModal(error_res || {
+            code: 500,
+            error: "INTERNAL SERVER ERROR",
+            details: "mock error. ignore this."
+        }); //* either display error, or test error
+
+        MODAL_CONTAINER.hidden = false;
+
+        const CLOSE_ERROR_MODAL = document.getElementById("close_modal");
+        CLOSE_ERROR_MODAL.onclick = (event) => {
+
+            MODAL_CONTAINER.hidden = true;
+            MODAL_CONTAINER.innerHTML = null;
+
+        };
+        
+    };
+
+};
+
+
+//_ PAGE RENDERING
 const DataFetchFunctions = () => {
     const NOTION_FETCH_COMMAND = document.getElementById("notion_fetch");
     NOTION_FETCH_COMMAND.onclick = async (event) => {
-        console.log(event);
-        const res = await (await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/notion_db`)).json();
-        console.log(res);
-        localStorage.setItem("recentFetch", "NOTION");
-        localStorage.setItem("NotionFetchData", JSON.stringify(res));
+
+        if (localStorage.getItem("recentFetch") != "NOTION") {
+            const NOTION_DATABASE_RES = await renderer.fetch(
+                `/notion`,
+                null,
+                {
+                    sessionID: localStorage.getItem("sessionID"),
+                    cookies: JSON.parse(localStorage.getItem("cookies")),
+                },
+                "GET"
+            );
+
+            localStorage.setItem("recentFetch", "NOTION");
+            localStorage.setItem("NotionFetchData", JSON.stringify(NOTION_DATABASE_RES.data));
+        };
+
         location.href = "../pages/data.html";
+
     };
 
     const SPOTIFY_FETCH_COMMAND = document.getElementById("spotify_fetch");
     SPOTIFY_FETCH_COMMAND.onclick = async (event) => {
-        const AUTH_URL = await (await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/spotify_authorization?sessionID=${localStorage.getItem("sessionID")}`)).text();
-        console.log(AUTH_URL);
 
-        localStorage.setItem("recentFetch", "SPOTIFY");
-        renderer.SpotifyAuth(AUTH_URL, localStorage.getItem("sessionID"));
+        if (localStorage.getItem("recentFetch") != "SPOTIFY") {
+            const AUTH_URL = await renderer.fetch(
+                `/spotify/authorization`,
+                null,
+                {
+                    sessionID: localStorage.getItem("sessionID"),
+                    cookies: JSON.parse(localStorage.getItem("cookies")),
+                },
+                "GET"
+            );
+
+            localStorage.setItem("recentFetch", "SPOTIFY");
+            renderer.SpotifyAuth(AUTH_URL.data, localStorage.getItem("sessionID"));
+
+        } else {
+            location.href = "../pages/data.html";
+        };
+
     };
 
     const GITHUB_FETCH_COMMAND = document.getElementById("github_fetch");
     GITHUB_FETCH_COMMAND.onclick = async (event) => {
-        console.log(event);
-        const RES = await (await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/github_repositories?username=${renderer.GITHUB_USERNAME}`)).json();
-        console.log(RES);
-        localStorage.setItem("recentFetch", "GITHUB");
-        localStorage.setItem("GithubFetchData", JSON.stringify(RES));
-        location.href = "../pages/data.html";
+
+        if (localStorage.getItem("recentFetch") != "GITHUB") {
+
+            await renderer.fetch(
+                "/github/repositories",
+                null,
+                {
+                    sessionID: localStorage.getItem("sessionID"),
+                    cookies: JSON.parse(localStorage.getItem("cookies")),
+                    username: renderer.GITHUB_USERNAME
+                },
+                "GET"
+            )
+            .then((res) => {
+                localStorage.setItem("recentFetch", "GITHUB");
+                localStorage.setItem("GithubFetchData", JSON.stringify(res.data));
+
+                location.href = "../pages/data.html";
+            });
+
+        } else {
+            location.href = "../pages/data.html"
+        };
+
     };
+
 };
 
 
-const HomePageRender = async () => {
-    const INIT_RES = await (await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/init`)).json();
-    localStorage.setItem("sessionID", INIT_RES.id);
+const renderPage = async () => {
     
+    //_ GENERAL PAGE COMPONENTS
     NAVIGATION_BAR.innerHTML += Navbar({
         current: "Home",
         links: {
@@ -65,6 +175,7 @@ const HomePageRender = async () => {
     TITLE_AREA.innerHTML = Title("Integrator");
     INTRO_AREA.innerHTML = IntroductionParagraph();
 
+    //_ INTEGRATIONS
     PRODUCTIVITY_SELECTION_TITLE.innerHTML = `
         <h2>Productivity Integrations</h2>
     `;
@@ -133,15 +244,19 @@ const HomePageRender = async () => {
         </div>
     `;
 
-    EXIT_BUTTON.onclick = async (event) => {
-        const END_SESSION_RES = await fetch(`${renderer.EXPRESS_BACKEND_API_URL}/exit?sessionID=${localStorage.getItem("sessionID")}`);
-        localStorage.clear();
-        
-        //TODO EXCEPTION HANDLING HERE!
+    if (window.renderer) { //* for web front-end
+        DataFetchFunctions();
+    } else {
+        //* for error testing purposes
+        const FETCH_COMMANDS = document.querySelectorAll("button[id*='fetch']"); //* all buttons for querying backend for resources
+        FETCH_COMMANDS.forEach((f_c) => {
+            f_c.onclick = (event) => {
+                testModal();
+            };
+        });
     };
 
-    DataFetchFunctions();
 };
 
 
-await HomePageRender();
+await renderPage();
