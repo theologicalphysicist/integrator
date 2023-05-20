@@ -2,7 +2,6 @@
 
 ![image](https://user-images.githubusercontent.com/62276646/228714726-cf545c44-cd71-414b-aa45-6aa90a36ea51.png)
 
-I
 i use a lot of different apps for my stuff. and i wanted to automate syncing, transferring & displaying the data between them.
 <br>
 because...well...who doesn't love [efficient, error-free] automation?
