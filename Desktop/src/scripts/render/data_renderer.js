@@ -1,4 +1,4 @@
-import { NAVIGATION_BAR, Navbar, LoadingLogo, ErrorModal } from "./global_renderer.js";
+import { NAVIGATION_BAR, Navbar, LoadingLogo, ErrorModal } from "../components/global.js";
 import {SpotifyPlaylistGrid, NotionDBGrid, GithubDataGrid} from "../components/data.js";
 
 import {LANGUAGE_COLOURS} from "../../const/languageColors.js";

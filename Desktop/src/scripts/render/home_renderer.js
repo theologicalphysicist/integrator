@@ -1,5 +1,5 @@
 import {IntroductionParagraph, IntegrationSection} from "../components/home.js";
-import {Title, NAVIGATION_BAR, Navbar, ErrorModal} from "./global_renderer.js";
+import {Title, NAVIGATION_BAR, Navbar, ErrorModal} from "../components/global.js";
 
 
 //_ WINDOW CONTAINERS
@@ -53,6 +53,32 @@ if (window.renderer) { //*  incase of web front-end
         localStorage.setItem("cookies", JSON.stringify(res.cookies));
 
     });
+
+};
+
+
+function testModal(error_res) {
+
+    if (MODAL_CONTAINER.hidden) {
+
+        MODAL_CONTAINER.innerHTML += ErrorModal(error_res || {
+            code: 500,
+            error: "INTERNAL SERVER ERROR",
+            details: "mock error. ignore this."
+        }); //* either display error, or test error
+
+        MODAL_CONTAINER.hidden = false;
+
+        const CLOSE_ERROR_MODAL = document.getElementById("close_modal");
+        CLOSE_ERROR_MODAL.onclick = (event) => {
+
+            MODAL_CONTAINER.hidden = true;
+            MODAL_CONTAINER.innerHTML = null;
+
+        };
+        
+    };
+
 };
 
 
@@ -71,8 +97,6 @@ const DataFetchFunctions = () => {
                 },
                 "GET"
             );
-
-            console.log({NOTION_DATABASE_RES});
 
             localStorage.setItem("recentFetch", "NOTION");
             localStorage.setItem("NotionFetchData", JSON.stringify(NOTION_DATABASE_RES.data));
@@ -96,10 +120,9 @@ const DataFetchFunctions = () => {
                 "GET"
             );
 
-            console.log(AUTH_URL);
-
             localStorage.setItem("recentFetch", "SPOTIFY");
             renderer.SpotifyAuth(AUTH_URL.data, localStorage.getItem("sessionID"));
+
         } else {
             location.href = "../pages/data.html";
         };
@@ -122,14 +145,10 @@ const DataFetchFunctions = () => {
                 "GET"
             )
             .then((res) => {
-                console.log(res);
                 localStorage.setItem("recentFetch", "GITHUB");
-                sessionStorage.setItem("test", "123");
                 localStorage.setItem("GithubFetchData", JSON.stringify(res.data));
+
                 location.href = "../pages/data.html";
-            })
-            .catch((err) => {
-                console.error(err);
             });
 
         } else {
@@ -137,6 +156,7 @@ const DataFetchFunctions = () => {
         };
 
     };
+
 };
 
 
@@ -225,34 +245,16 @@ const renderPage = async () => {
     `;
 
     if (window.renderer) { //* for web front-end
-
         DataFetchFunctions();
-
     } else {
-            
-        const NOTION_FETCH_COMMAND = document.getElementById("notion_fetch");
-        NOTION_FETCH_COMMAND.onclick = async (event) => {
-            if (MODAL_CONTAINER.hidden) {
-
-                MODAL_CONTAINER.innerHTML += ErrorModal({
-                    code: 500,
-                    error: "INTERNAL SERVER ERROR",
-                    details: "mock error. ignore this."
-                });
-
-                MODAL_CONTAINER.hidden = false;
-
-                const CLOSE_ERROR_MODAL = document.getElementById("close_modal");
-                CLOSE_ERROR_MODAL.onclick = (event) => {
-
-                    MODAL_CONTAINER.hidden = true;
-                    MODAL_CONTAINER.innerHTML = null;
-
-                };
-                
+        //* for error testing purposes
+        const FETCH_COMMANDS = document.querySelectorAll("button[id*='fetch']"); //* all buttons for querying backend for resources
+        FETCH_COMMANDS.forEach((f_c) => {
+            f_c.onclick = (event) => {
+                testModal();
             };
-        }
-    }
+        });
+    };
 
 };
 

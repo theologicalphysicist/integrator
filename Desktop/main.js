@@ -1,20 +1,22 @@
-const {app, BrowserWindow, ipcMain, ipcRenderer, session} = require("electron");
+const {app, ipcMain, session} = require("electron");
 
 //_ LOCAL
-const {loadCSS, INTEGRATOR_INSTANCE} = require("./src/utils.js");
-const { createMainWindow, createSpotifyAuthWindow } = require("./src/windows.js");
+const {INTEGRATOR_INSTANCE, formatError} = require("./src/utils.js");
+const { MainWindow, AuthWindow } = require("./src/windows.js");
 
+//_ DYNAMIC INPORTS
 let queryString;
 import("query-string")
     .then((module_obj) => {
         queryString = module_obj.default
     })
-    .catch((err) => console.error(`ERROR: ${err}`));
+    .catch((err) => console.error(`ERROR LOADING MODULE QUERY STRING: ${err}`));
 
+//_ LOAD ENVIRONMENT
 if (process.env.NODE_ENV !== "production") {
     require("dotenv").config({
-        "debug": true,
-        "path": "./.env.local"
+        debug: true,
+        path: "./.env.local",
     });
 };
 
@@ -27,9 +29,7 @@ let ELECTRON_SESSION;
 //_ APP MAINTENANCE
 app.on("ready", async () => {
 
-    // loadCSS();
-
-    MAIN_WINDOW = createMainWindow();
+    MAIN_WINDOW = MainWindow();
     await MAIN_WINDOW.loadFile("./pages/index.html");
 
     await INTEGRATOR_INSTANCE().request({
@@ -58,19 +58,25 @@ app.on("window-all-closed", () => {
 });
 
 
-//_ EVENT HANDLERS
+//_ IPC EVENT HANDLERS
 ipcMain.on("SpotifyAuth", async (event, page_url, session_id) => {
-    const SPOTIFY_AUTH_WINDOW = createSpotifyAuthWindow(page_url, MAIN_WINDOW);
+    const SPOTIFY_AUTH_WINDOW = AuthWindow(page_url, MAIN_WINDOW);
 
     INTEGRATOR_INSTANCE().get(`${process.env.EXPRESS_BACKEND_API_URL}/spotify/tokens?sessionID=${session_id}`)
         .then(async (res) => {
 
-            console.log(res.data);
             await MAIN_WINDOW.loadFile("./pages/data.html");
 
         })
         .catch((err) => {
-            console.error(`ERROR: ${err}`);     
+            const ERROR_RES = formatError(event, err)   
+            console.log(ERROR_RES.error);
+
+            event.sender.send("fetchError", {
+                ...ERROR_RES.error
+            });
+
+            throw new Error(JSON.stringify(ERROR_RES.error));
         });
 
 });
@@ -100,30 +106,7 @@ ipcMain.handle("fetch", async (event, url, request_data, query_params, verb) => 
             }
         };
     }).catch((err) => {
-        // console.log(err);
-
-        if (err.response) {
-            response.error = {
-                present: true,
-                code: err.response.status,
-                error: err.response.data.error.error || err.response.data.error || err.response.statusText.toUpperCase(),
-                details: err.response.data.error.details || err.response.data.details || "NO ERROR DETAILS"
-            };
-        } else if (err.request) {
-            response.error = {
-                present: true,
-                code: 500,
-                error: "INTERNAL SERVER ERROR",
-                details: err.request
-            };
-        } else {
-            response.error = {
-                present: true,
-                code: 500,
-                error: "INTERNAL SERVER ERROR",
-                details: err.message
-            };
-        }
+        response = formatError(event, err);
 
         console.log(response.error);
 
@@ -132,7 +115,6 @@ ipcMain.handle("fetch", async (event, url, request_data, query_params, verb) => 
         });
 
         throw new Error(JSON.stringify(response.error));
-
     });
 
     return response;

@@ -2,7 +2,7 @@ const {BrowserWindow} = require("electron");
 const path = require("path");
 
 
-const createMainWindow = () => {
+const MainWindow = () => {
     const MAIN_WINDOW = new BrowserWindow({
         width: 800,
         height: 600,
@@ -29,19 +29,19 @@ const createMainWindow = () => {
 };
 
 
-function createSpotifyAuthWindow(page_url, main_window) {
-    const SPOTIFY_AUTH_WINDOW = new BrowserWindow({
+function AuthWindow(page_url, main_window) {
+    const AUTH_WINDOW = new BrowserWindow({
         width: 800,
         height: 600,
         parent: main_window,
         icon: "./public/img/favicon.ico"
     });
 
-    SPOTIFY_AUTH_WINDOW.center();
-    SPOTIFY_AUTH_WINDOW.loadURL(page_url);
+    AUTH_WINDOW.center();
+    AUTH_WINDOW.loadURL(page_url);
 
-    return SPOTIFY_AUTH_WINDOW;
+    return AUTH_WINDOW;
 };
 
 
-module.exports = {createMainWindow, createSpotifyAuthWindow};
+module.exports = {MainWindow, AuthWindow};
