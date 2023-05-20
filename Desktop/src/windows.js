@@ -29,11 +29,11 @@ const createMainWindow = () => {
 };
 
 
-function createSpotifyAuthWindow(page_url) {
+function createSpotifyAuthWindow(page_url, main_window) {
     const SPOTIFY_AUTH_WINDOW = new BrowserWindow({
         width: 800,
         height: 600,
-        parent: MAIN_WINDOW,
+        parent: main_window,
         icon: "./public/img/favicon.ico"
     });
 

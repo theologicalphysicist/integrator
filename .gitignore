@@ -1,3 +1,4 @@
+#_ ALL
 node_modules/
 
 .env
@@ -6,9 +7,15 @@ node_modules/
 
 .vscode
 
+#_ DESKTOP
 Desktop/src/styles/*.css
+Desktop/src/styles/*.css.map
 
-#- BACKEND
+Desktop/public/img
+Desktop/public/img
+Desktop/public/img
+
+#_ BACKEND
 */dist/
 */.parcel-cache/
 

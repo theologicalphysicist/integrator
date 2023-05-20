@@ -7,7 +7,8 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "start": "electron-forge start",
         "electron-dev": "electron .",
-        "dev": "electronmon .",
+        "predev": "cd ./src/styles && sass ./scss/data/data.scss ./data.css && sass ./scss/media/media.scss ./media.css && sass ./scss/home/home.scss ./home.css",
+        "dev": "electronmon --trace-warnings .",
         "package": "electron-forge package",
         "make": "electron-forge make"
     },

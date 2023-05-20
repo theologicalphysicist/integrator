@@ -1,4 +1,4 @@
-import { Router } from "express";
+import Express, { Router } from "express";
 
 import queryString from "query-string";
 import EventEmitter from "node:events";
@@ -19,7 +19,7 @@ const SPOTIFY_TOKENS_AVAILABLE = new EventEmitter(); //* for long-polling to han
 //_ MIDDLEWARE
 SPOTIFY_ROUTER.use((req, res, next) => {
 
-    if (req.path != "/callback") {
+    if (!["/callback", "/spotify.html"].includes(req.path)) {
         
         if (!req.query.sessionID) { //* invalid request, no session id
             next({
@@ -88,6 +88,7 @@ SPOTIFY_ROUTER.use("/resource", async (req, res, next) => {
     next();
 });
 
+SPOTIFY_ROUTER.use(Express.static("./public"));
 
 //_ ROUTES
 SPOTIFY_ROUTER.get("/", async (req, res) => {
@@ -121,6 +122,7 @@ SPOTIFY_ROUTER.get("/authorization", async (req, res) => {
 SPOTIFY_ROUTER.get("/callback", async (req, res, next) => {
 
     if (req.query.code && req.query.state) {
+
         await getAuthCode(
             req.query.code, 
             process.env.SPOTIFY_REDIRECT_URI,
@@ -132,16 +134,16 @@ SPOTIFY_ROUTER.get("/callback", async (req, res, next) => {
 
             req.sessionStore.get(req.query.state, (err, sess) => {
                 
-                if (err) throw new Error("no session found. invalid authentication.");
+                if (err) throw new Error(`no session found. invalid authentication. ${err}`);
 
                 req.sessionStore.set(req.query.state, {
                     ...sess,
                     spotify: {
-                        accessToken: TOKEN_RES.access_token,
-                        scope: TOKEN_RES.scope,
-                        expiryTime: (TOKEN_RES.expires_in * 1000) + Date.now(),
-                        refreshToken: TOKEN_RES.refresh_token,
-                        tokenType: TOKEN_RES.token_type
+                        accessToken: token_res.data.access_token,
+                        scope: token_res.data.scope,
+                        expiryTime: (token_res.data.expires_in * 1000) + Date.now(),
+                        refreshToken: token_res.data.refresh_token,
+                        tokenType: token_res.data.token_type
                     }
                 }, (err) => {
                     if (err) throw new Error("session could not be set");
@@ -154,7 +156,7 @@ SPOTIFY_ROUTER.get("/callback", async (req, res, next) => {
         })
         .catch((err) => {
             next({
-                ...ERROR_MESSAGE,
+                ...ERROR_MESSAGE(500),
                 details: err
             });
         });

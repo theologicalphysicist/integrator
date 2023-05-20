@@ -1,5 +1,4 @@
 const {app, BrowserWindow, ipcMain, ipcRenderer, session} = require("electron");
-// const axios = require("axios").default;
 
 //_ LOCAL
 const {loadCSS, INTEGRATOR_INSTANCE} = require("./src/utils.js");
@@ -28,7 +27,7 @@ let ELECTRON_SESSION;
 //_ APP MAINTENANCE
 app.on("ready", async () => {
 
-    loadCSS();
+    // loadCSS();
 
     MAIN_WINDOW = createMainWindow();
     await MAIN_WINDOW.loadFile("./pages/index.html");
@@ -61,19 +60,18 @@ app.on("window-all-closed", () => {
 
 //_ EVENT HANDLERS
 ipcMain.on("SpotifyAuth", async (event, page_url, session_id) => {
-    const SPOTIFY_AUTH_WINDOW = createSpotifyAuthWindow(page_url);
+    const SPOTIFY_AUTH_WINDOW = createSpotifyAuthWindow(page_url, MAIN_WINDOW);
 
-    // axios.get(`${process.env.EXPRESS_BACKEND_API_URL}/spotify/tokens?sessionID=${session_id}`)
-    //     .then(async (res) => {
+    INTEGRATOR_INSTANCE().get(`${process.env.EXPRESS_BACKEND_API_URL}/spotify/tokens?sessionID=${session_id}`)
+        .then(async (res) => {
 
-    //         console.log(res.data);
-    //         await MAIN_WINDOW.loadFile("./pages/data.html");
-    //         SPOTIFY_AUTH_WINDOW.close();
+            console.log(res.data);
+            await MAIN_WINDOW.loadFile("./pages/data.html");
 
-    //     })
-    //     .catch((err) => {
-    //         console.error(`ERROR: ${err}`);     
-    //     });
+        })
+        .catch((err) => {
+            console.error(`ERROR: ${err}`);     
+        });
 
 });
 
@@ -83,7 +81,8 @@ ipcMain.handle("fetch", async (event, url, request_data, query_params, verb) => 
         error: {
             present: false,
             code: 0,
-            details: null
+            details: null,
+            error: null
         }
     };
 
@@ -94,34 +93,46 @@ ipcMain.handle("fetch", async (event, url, request_data, query_params, verb) => 
         params: query_params
     }).then((res) => {
         response = {
-            ...response,
             data: res.data,
             error: {
+                ...response.error,
                 code: res.status
             }
         };
     }).catch((err) => {
+        // console.log(err);
+
         if (err.response) {
             response.error = {
                 present: true,
                 code: err.response.status,
-                details: err.response.data
+                error: err.response.data.error.error || err.response.data.error || err.response.statusText.toUpperCase(),
+                details: err.response.data.error.details || err.response.data.details || "NO ERROR DETAILS"
             };
         } else if (err.request) {
             response.error = {
                 present: true,
                 code: 500,
+                error: "INTERNAL SERVER ERROR",
                 details: err.request
             };
         } else {
             response.error = {
                 present: true,
                 code: 500,
+                error: "INTERNAL SERVER ERROR",
                 details: err.message
             };
         }
 
+        console.log(response.error);
+
+        event.sender.send("fetchError", {
+            ...response.error
+        });
+
         throw new Error(JSON.stringify(response.error));
+
     });
 
     return response;

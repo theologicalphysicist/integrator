@@ -1,11 +1,37 @@
-import { NAVIGATION_BAR, Navbar, Loading } from "./global_renderer.js";
+import { NAVIGATION_BAR, Navbar, LoadingLogo, ErrorModal } from "./global_renderer.js";
 import {SpotifyPlaylistGrid, NotionDBGrid, GithubDataGrid} from "../components/data.js";
 
 import {LANGUAGE_COLOURS} from "../../const/languageColors.js";
 
 
 const LOAD_DATA_AREA = document.getElementById("load_data");
-LOAD_DATA_AREA.innerHTML = Loading();
+LOAD_DATA_AREA.innerHTML = LoadingLogo();
+
+if (window.renderer) {
+
+    renderer.fetchError(async (event, error_res) => {
+
+        if (MODAL_CONTAINER.hidden) {
+
+            MODAL_CONTAINER.innerHTML += ErrorModal(error_res);
+
+            MODAL_CONTAINER.hidden = false;
+            MODAL_CONTAINER.style.display = "flex";
+
+            const CLOSE_ERROR_MODAL = document.getElementById("close_modal");
+            CLOSE_ERROR_MODAL.onclick = (event) => {
+
+                MODAL_CONTAINER.hidden = true;
+                MODAL_CONTAINER.innerHTML = "";
+                MODAL_CONTAINER.style.display = "none";
+
+            };
+
+        }
+
+    });
+
+};
 
 
 const sum = (numbers) => {
@@ -28,7 +54,8 @@ const loadGithubRepositoryData = async (repo_names) => {
         {
             sessionID: localStorage.getItem("sessionID"),
             cookies: JSON.parse(localStorage.getItem("cookies")),
-            username: renderer.GITHUB_USERNAME
+            username: renderer.GITHUB_USERNAME,
+            repositories: repo_names
         },
         "GET"
     );
@@ -39,7 +66,7 @@ const loadGithubRepositoryData = async (repo_names) => {
 
 const LoadSpotifyData = async () => {
     const PLAYLIST_RES = await renderer.fetch(
-        "/spotify/playlists",
+        "/spotify/resource/playlists",
         null,
         {
             sessionID: localStorage.getItem("sessionID"),

@@ -20,7 +20,12 @@ GITHUB_ROUTER.use(async (req, res, next) => {
                 ...ERROR_MESSAGE(429),
                 details: `external rate limit will be exceeded by this request. please wait until ${new Date(LIMIT_RES.data.resources.core.reset)} before trying again.`
             }) : null; 
-    };
+    } else if (LIMIT_RES.data.resources.core.remaining < 3) {
+        next({
+            ...ERROR_MESSAGE(429),
+            details: `external rate limit will be exceeded by this request. please wait until ${new Date(LIMIT_RES.data.resources.core.reset * 1000)} before trying again.`
+        });
+    }
 
     if (!req.query.sessionID) { //* invalid request, no session id
         next({

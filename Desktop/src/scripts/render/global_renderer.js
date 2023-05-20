@@ -26,20 +26,28 @@ const Navbar = (props) => {
 };
 
 
-const Loading = () => {
+const LoadingLogo = () => {
+
     return `
-        <div id="loading_container">
-            <h4>Loading...</h4>
-            <div id="loading_symbol">
-                <div id="loading_top"></div>
-                <div id="loading_bottom_left"></div>
-                <div id="loading_bottom_right"></div>
-            
-            </div>
-        
+        <div id="logo_container">
+            <div class="logo_circle" id="circle1"></div>
+            <div class="logo_circle" id="circle3"></div>
+            <div class="logo_circle" id="circle2"></div>
         </div>
     `;
 };
 
 
-export {NAVIGATION_BAR, Navbar, Title, Loading, }
+const ErrorModal = (error_res) => {
+
+    return `
+        <div class="modal-popup" id="error_modal">
+            <h1>ERROR ${error_res.code}: ${error_res.error}</h1>
+            <p>${error_res.details}</p>
+            <button id="close_modal">CLOSE</button>
+        </div>
+    `;
+};
+
+
+export {NAVIGATION_BAR, Navbar, Title, ErrorModal, LoadingLogo}
