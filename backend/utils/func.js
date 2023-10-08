@@ -106,11 +106,11 @@ export async function CSVtoJSON(in_path, out_path) {
 
 export async function JSONifyCSV(in_path, out_path) {
     const APPLE_MUSIC_CONTENTS = await csv().fromFile(in_path, {autoClose: true});
+    let playlists = [{}];
 
     APPLE_MUSIC_CONTENTS.forEach((song, song_index) => {
 
-        FUNCS_LOGGER.info(song);
-
+    
     });
 
 };
