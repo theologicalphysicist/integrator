@@ -1,0 +1,93 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://example.com/product.schema.json",
+    "title": "GITHUB SCHEMA",
+    "description": "schema for github payload",
+    "type": "string",
+    "properties": {
+
+        "issues": {
+            "description": "all github issues for a particular repo",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "issueTitle": {
+                        "type": "string"
+                    },
+                    "labels": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "colour": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "issueText": {
+                        "type": "string"
+                    },
+                    "dateOfCreation": {
+                        "type": "string"
+                    },
+                    "dateOfLastUpdate": {
+                        "type": "string"
+                    }
+                }
+            },
+            "minItems": 0,
+            "uniqueItems": true
+        },
+
+        "repositories": {
+            "description": "all github repos for current user",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "repoName": {
+                        "type": "string"
+                    },
+                    "repoFullName": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "dateOfCreation": {
+                        "type": "string"
+                    },
+                    "dateOfLastUpdate": {
+                        "type": "string"
+                    },
+                    "size": {
+                        "type": "integer"
+                    },
+                    "language": {
+                        "type": "string"
+                    },
+                    "visibility": {
+                        "type": "string"
+                    },
+                    "numberOfOpenIssues": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "minItems": 0,
+            "uniqueItems": true
+        },
+
+        "languages": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "minItems": 0,
+            "uniqueItems": true
+        }
+
+    }
+}

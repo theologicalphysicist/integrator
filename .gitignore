@@ -1,26 +1,19 @@
 #_ ALL
-node_modules/
+**/node_modules/
 
-.env
-.env.local
-.env.me
-.env.vault
+**/.env*
+**/.env.local
+**/.env.me
+**/.env.vault
 
-.vscode
+!**/.env.development
+!**/.env.production
 
-#_ DESKTOP
-Desktop/src/styles/*.css
-Desktop/src/styles/*.css.map
+**/.vscode
 
-Desktop/public/img
-Desktop/public/img
-Desktop/public/img
+**/*.zip
 
-#_ BACKEND
-*/dist/
-*/.parcel-cache/
+#_ TS
+**/.tsbuildinfo
 
-# .env*
-.flaskenv*
-!.env.project
-!.env.vault
+integrator-backend.PublishSettings

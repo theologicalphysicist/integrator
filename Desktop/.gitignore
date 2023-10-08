@@ -1,0 +1,7 @@
+#_ CSS
+src/styles/*.css
+src/styles/*.css.map
+
+#_ IMAGES
+public/img
+

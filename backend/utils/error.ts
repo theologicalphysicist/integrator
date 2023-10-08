@@ -40,12 +40,13 @@ export const ERROR_CODES = new Map([
     [510, "Not Extended".toUpperCase()],
     [511, "Network Authentication Required".toUpperCase()]
 ]);
-
-export const ERROR_MESSAGE = (code) => {
+const BUGS_URL = "https://github.com/theologicalphysicist/integrator/issues";
+const DEFAULT_DETAILS: string = `an unknown error has occurred. if this persists, report to ${BUGS_URL} with the 'bug' tag.`;
+export const ERROR_MESSAGE = (code: number = 500, error_details: string = DEFAULT_DETAILS) => {
     return {
-        statusCode: code || 500,
-        error: ERROR_CODES.get(code || 500),
-        details: "an unknown error has occurred. if this persists, report to https://github.com/theologicalphysicist/integrator/issues with the 'bug' tag.",
+        statusCode: code,
+        error: ERROR_CODES.get(code),
+        details: error_details,
         time: new Date()
     };
 }; //* 500 corresponds to default error details
