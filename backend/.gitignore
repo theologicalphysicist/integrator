@@ -1,0 +1,6 @@
+#_ PROD (for now)
+dist/
+.parcel-cache/
+
+#_ DATA
+public/*.csv

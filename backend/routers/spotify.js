@@ -4,16 +4,19 @@ import queryString from "query-string";
 import EventEmitter from "node:events";
 
 //_ LOCAL
-import { getAuthCode, refreshToken, getPlaylists } from "../apis/media/spotify.js";
+import { getAuthCode, refreshToken, getPlaylists, createPlaylist, querySong } from "../apis/media/spotify.ts";
+import { getPlaylist } from "../apis/media/apple_music.ts"; //! REMEMBER THIS IS TEMPORARY
+
+import { SPOTIFY_ACCOUNTS_INSTANCE, SPOTIFY_API_INSTANCE } from "../apis/clients.js";
 
 import { SPOTIFY_ACCOUNTS_URL } from "../utils/const.js";
 import { ERROR_MESSAGE } from "../utils/error.js";
-
-import { SPOTIFY_ACCOUNTS_INSTANCE, SPOTIFY_API_INSTANCE } from "../apis/clients.js";
+import { Verbal } from "../utils/logger.js";
 
 
 const SPOTIFY_ROUTER = Router(); 
 const SPOTIFY_TOKENS_AVAILABLE = new EventEmitter(); //* for long-polling to handle spotify tokens
+const SPOTIFY_LOGGER = new Verbal("spotify");
 
 
 //_ MIDDLEWARE
@@ -21,16 +24,14 @@ SPOTIFY_ROUTER.use((req, res, next) => {
 
     if (!["/callback", "/spotify.html"].includes(req.path)) {
         
-        if (!req.query.sessionID) { //* invalid request, no session id
-            next({
-                ...ERROR_MESSAGE(400),
-                details: "invalid session ID provided.",
-            });
-        };
+        if (!req.query.sessionID) next({ //* invalid request, no session id
+            ...ERROR_MESSAGE(400),
+            details: "invalid session ID provided.",
+        });
 
-        req.sessionStore.get(req.query.sessionID, (err, sess) => { //* invalid request, bad session id
+        req.sessionStore.get(req.query.sessionID, (err, sess) => { 
 
-            if (!sess) next({
+            if (!sess) next({ //* invalid request, bad session id
                 ...ERROR_MESSAGE(400),
                 details: "invalid session ID provided.",
             });
@@ -38,7 +39,7 @@ SPOTIFY_ROUTER.use((req, res, next) => {
             req.currentSession = sess;
             req.currentCookies = {
                 cookie: {...sess.cookie},
-                id: sess.cookieID
+                id: sess.cookieID ?? null
             };
 
             next();
@@ -52,14 +53,16 @@ SPOTIFY_ROUTER.use((req, res, next) => {
 });
 
 
-SPOTIFY_ROUTER.use("/resource", async (req, res, next) => {
+SPOTIFY_ROUTER.use("/resource", async (req, res, next) => { 
     
     if (req.currentSession.spotify.expiryTime <= Date.now()) { //* i.e., the tokens have expired, since "now" is after the expiry date.
         console.log("TOKENS EXPIRED. REFRESHING...");
         const NEW_TOKENS = await refreshToken(
             req.currentSession.spotify.refreshToken,
-            process.env.SPOTIFY_CLIENT_ID, 
-            process.env.SPOTIFY_CLIENT_SECRET
+            SPOTIFY_ACCOUNTS_INSTANCE(
+                process.env.SPOTIFY_CLIENT_ID, 
+                process.env.SPOTIFY_CLIENT_SECRET
+            )
         );
 
         if (NEW_TOKENS.error.present) next({
@@ -85,10 +88,15 @@ SPOTIFY_ROUTER.use("/resource", async (req, res, next) => {
 
     };
 
+    //TODO: adapt spotify session to also contain username & user_id.
+    //TODO: all resource requests should require this information from session store 
+
     next();
 });
 
+
 SPOTIFY_ROUTER.use(Express.static("./public"));
+
 
 //_ ROUTES
 SPOTIFY_ROUTER.get("/", async (req, res) => {
@@ -162,7 +170,7 @@ SPOTIFY_ROUTER.get("/callback", async (req, res, next) => {
         });
 
     } else {
-        next(ERROR_MESSAGE);
+        next(ERROR_MESSAGE(500));
     };
 
 });
@@ -235,6 +243,97 @@ SPOTIFY_ROUTER.post("/refresh", async (req, res, next) => {
         id: req.currentSession.id,
         cookies: req.currentCookies,
     });
+});
+
+
+SPOTIFY_ROUTER.get("/resource/user", async (req, res, next) => {
+    let token_type = req.currentSession.spotify.tokenType;
+    let access_token = req.currentSession.spotify.accessToken;
+
+    await createPlaylist(
+        SPOTIFY_API_INSTANCE(token_type, access_token), 
+        process.env.SPOTIFY_USER_ID, 
+        "TESTER", 
+        "TEST PLAYLIST FROM INTEGRATOR"
+    )
+    .then((spotify_res) => {
+
+        if (spotify_res.error.present) throw new Error(JSON.stringify(spotify_res.error));
+
+        res.status(200).json(spotify_res.data);
+    })
+    .catch((err) => {
+        const ERROR = JSON.parse(err.message);
+        if (process.env.NODE_ENV === "local") SPOTIFY_LOGGER.error(ERROR);
+
+        next({
+            ...ERROR_MESSAGE(ERROR.code),
+            details: JSON.parse(ERROR.details),
+        });
+    });
+
+});
+
+
+SPOTIFY_ROUTER.get("/resource/search", async (req, res, next) => {
+    let token_type = req.currentSession.spotify.tokenType;
+    let access_token = req.currentSession.spotify.accessToken;
+    const SONGS = getPlaylist("21");
+
+    // SPOTIFY_LOGGER.debug({SONG});
+
+    // res.status(200).send({result: true});
+    
+    await querySong(
+        SPOTIFY_API_INSTANCE(token_type, access_token), 
+        SPOTIFY_LOGGER,
+        SONGS[0]
+    )
+    .then((spotify_res) => {
+        
+        if (spotify_res.error.present) throw new Error(JSON.stringify(spotify_res.error));
+
+        res.status(200).json(spotify_res.data);
+    })
+    .catch((err) => {
+        const ERROR = JSON.parse(err.message);
+        if (process.env.NODE_ENV === "local") SPOTIFY_LOGGER.error(ERROR);
+
+        next({
+            ...ERROR_MESSAGE(ERROR.code),
+            details: JSON.parse(ERROR.details),
+        });
+    });
+
+});
+
+
+SPOTIFY_ROUTER.post("/resource/playlist", async (req, res, next) => {
+    let token_type = req.currentSession.spotify.tokenType;
+    let access_token = req.currentSession.spotify.accessToken;
+
+    if (!req.query.playlistName || !req.query.playlistDesc) next({
+        ...ERROR_MESSAGE(400),
+        details: `please provide required request parameters.`
+    });
+
+    await createPlaylist(SPOTIFY_API_INSTANCE(token_type, access_token), process.env.SPOTIFY_USER_ID, "TESTER", "TEST PLAYLIST FROM INTEGRATOR")
+        .then((spotify_res) => {
+
+            if (spotify_res.error.present) throw new Error(JSON.stringify(spotify_res.error)) ;
+
+            res.status(200).json(spotify_res.data);
+        })
+        .catch((err) => {
+            const ERROR = JSON.parse(err.message);
+            if (process.env.NODE_ENV === "local") SPOTIFY_LOGGER.error(ERROR);
+
+            next({
+                ...ERROR_MESSAGE(ERROR.code),
+                details: JSON.parse(ERROR.details),
+            });
+        });
+
 });
 
 

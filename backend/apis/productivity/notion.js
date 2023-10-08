@@ -1,4 +1,5 @@
 import { wrapResponse } from "../../utils/func.js";
+import { NOTION_CLIENT } from "../clients.js";
 
 export const getNotionDatabaseDetails = async (notion_client, db_id) => {
     let finished = false;
@@ -98,3 +99,11 @@ export const getAllNotionDatabases = async (notion_client) => {
     return wrapResponse(error, data);
 };
 
+
+export function createNotionDatabase(db_data, notion_client) {
+
+    // notion_client.
+
+    NOTION_CLIENT(process.env.NOTION_TOKEN).databases.create
+
+};

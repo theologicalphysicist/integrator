@@ -1,6 +1,17 @@
+import {writeFile} from "node:fs/promises";
+
+import csv from "csvtojson";
+
+//_ LOCAL
 import { ERROR_CODES } from "./error.js";
+import { Verbal } from "./logger.js";
 
 
+//_LOGGER
+const FUNCS_LOGGER = new Verbal("utility functions");
+
+
+//_ FUNCTIONS
 export function generateRandomString(length) {
     //TODO: ENSURE ONLY UNIQUE VALUES GENERATED
     const POSSIBLE = "abcdef0123456789";
@@ -57,5 +68,49 @@ export function formatAxiosError(error_obj) {
             details: `${JSON.stringify({name: error_obj.name, message: error_obj.message, ...REQUEST_CONFIG})}`
         };
     }
+
+};
+
+
+export function checkEnvironment() { //* check if not in some form of production environment
+
+    return !["production", "prod", "development", "dev"].includes(process.env.NODE_ENV);
+};
+
+
+export async function CSVtoJSON(in_path, out_path) {
+    let formatted_playlists;
+    const APPLE_MUSIC_CONTENTS = await csv().fromFile(in_path, {autoClose: true});
+
+    APPLE_MUSIC_CONTENTS.forEach((song, index) => {
+
+        if (!formatted_playlists[`${song["Playlist name"]}`]) formatted_playlists[`${song["Playlist name"]}`] = [];
+        
+        formatted_playlists[`${song["Playlist name"]}`].push({
+            name: song["Track name"],
+            artist: song["Artist name"],
+            album: song["Album"],
+            ISRC: parseInt(song["ISRC"])
+        });
+    });
+
+    await writeFile(
+        out_path, 
+        JSON.stringify(formatted_playlists, null, 4)
+    ).catch((err) => {
+        FUNCS_LOGGER.error({err});
+    });
+
+};
+
+
+export async function JSONifyCSV(in_path, out_path) {
+    const APPLE_MUSIC_CONTENTS = await csv().fromFile(in_path, {autoClose: true});
+    let playlists = [{}];
+
+    APPLE_MUSIC_CONTENTS.forEach((song, song_index) => {
+
+    
+    });
 
 };

@@ -1,0 +1,20 @@
+//_ SCHEMA DESIGN FOR ALL INTEGRATIONS
+
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://example.com/product.schema.json",
+    "title": "INTEGRATIONS SCHEMA",
+    "description": "schema for all integration payloads between apis",
+    "type": "object",
+    "properties": {
+        "notion": {
+            "description": "all info relating to notion data for creating notion databases",
+            "type": "object",
+            "properties": {
+                
+            }
+        }
+    },
+
+    "required": []
+}
