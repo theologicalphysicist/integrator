@@ -14,7 +14,7 @@ import MongoStore from "connect-mongo";
 import NOTION_ROUTER from "./routers/notion.js";
 import SPOTIFY_ROUTER from "./routers/spotify.js";
 import GITHUB_ROUTER from "./routers/github.js";
-import { APPLE_MUSIC_ROUTER } from "./routers/apple_music.js";
+import { APPLE_MUSIC_ROUTER } from "./routers/applemusic.js";
 
 //_ LOCAL UTILITIES
 import { MONGODB_URL } from "./utils/const.js";
@@ -24,10 +24,11 @@ import { CSVtoJSON, generateRandomString } from "./utils/func.js";
 
 //_ CONTROLLERS
 import { MONGODB_CLIENT } from "./apis/clients.js";
+import { Framework } from "utils/types.js";
 
 
 const app = Express();
-const INDEX_LOGGER = new Verbal("index");
+const INDEX_LOGGER = new Verbal("index", true, Framework.MORGAN);
 const STORE = MongoStore.create({
     mongoUrl: MONGODB_URL(process.env.MONGODB_USER, process.env.MONGODB_PASSWORD),
     dbName: "sessions",
@@ -38,11 +39,11 @@ const STORE = MongoStore.create({
 
 //_ MIDDLEWARE
 app.use(cors());
-app.use(morgan((tokens, req, res) => RequestLog(tokens, req, res), {
+app.use(morgan((tokens, req, res) => INDEX_LOGGER.request(tokens, req, res), {
     skip: false,
     immediate: true
 }));
-app.use(morgan((tokens, req, res) => ResponseLog(tokens, req, res), {
+app.use(morgan((tokens, req, res) => INDEX_LOGGER.response(tokens, req, res), {
     skip: false,
     immediate: false
 }));

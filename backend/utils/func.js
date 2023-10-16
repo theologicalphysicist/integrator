@@ -1,6 +1,7 @@
 import {writeFile} from "node:fs/promises";
 
 import csv from "csvtojson";
+import jsonfile from "jsonfile";
 
 //_ LOCAL
 import { ERROR_CODES } from "./error.js";
@@ -43,31 +44,31 @@ export function formatAxiosError(error_obj) {
     };
 
     //TODO: FIND WAY TO GET ERROR NAME BASED ON STATUS CODE
-    if (error_obj.response) {
-        console.log("ERROR TYPE: response");
+    return {
+        code: error_obj.status,
+        error: ERROR_CODES.get(error_obj.status),
+        details: `${JSON.stringify({name: error_obj.name, message: error_obj.message, ...REQUEST_CONFIG}, null, 4)}`
+    };
+    // if (error_obj.response) {
+    //     FUNCS_LOGGER.log("ERROR TYPE: response");
 
-        return {
-            code: error_obj.response.status,
-            error: ERROR_CODES.get(error_obj.response.status),
-            details: `${JSON.stringify({message: error_obj.response.data.error.message.toLowerCase(), ...REQUEST_CONFIG})}`
-        };
-    } else if (error_obj.request) {
-        console.log("ERROR TYPE: request");
+    //     return {
+    //         code: error_obj.response.status,
+    //         error: ERROR_CODES.get(error_obj.response.status),
+    //         details: `${JSON.stringify({message: error_obj.response.data.error.message.toLowerCase(), ...REQUEST_CONFIG})}`
+    //     };
+    // } else if (error_obj.request) {
+    //     FUNCS_LOGGER.log("ERROR TYPE: request");
 
-        return {
-            code: 500,
-            error: ERROR_CODES.get(500),
-            details: `${JSON.stringify({...error_obj.request, ...REQUEST_CONFIG})}`
-        };
-    } else {
-        console.log("ERROR TYPE: unknown");
+    //     return {
+    //         code: 500,
+    //         error: ERROR_CODES.get(500),
+    //         details: `${JSON.stringify({...error_obj.request, ...REQUEST_CONFIG})}`
+    //     };
+    // } else {
 
-        return {
-            code: error_obj.status,
-            error: ERROR_CODES.get(error_obj.status),
-            details: `${JSON.stringify({name: error_obj.name, message: error_obj.message, ...REQUEST_CONFIG})}`
-        };
-    }
+
+    // }
 
 };
 
@@ -79,8 +80,8 @@ export function checkEnvironment() { //* check if not in some form of production
 
 
 export async function CSVtoJSON(in_path, out_path) {
-    let formatted_playlists;
     const APPLE_MUSIC_CONTENTS = await csv().fromFile(in_path, {autoClose: true});
+    let formatted_playlists;
 
     APPLE_MUSIC_CONTENTS.forEach((song, index) => {
 
@@ -92,6 +93,7 @@ export async function CSVtoJSON(in_path, out_path) {
             album: song["Album"],
             ISRC: parseInt(song["ISRC"])
         });
+
     });
 
     await writeFile(
@@ -99,18 +101,59 @@ export async function CSVtoJSON(in_path, out_path) {
         JSON.stringify(formatted_playlists, null, 4)
     ).catch((err) => {
         FUNCS_LOGGER.error({err});
+
     });
 
 };
 
 
-export async function JSONifyCSV(in_path, out_path) {
-    const APPLE_MUSIC_CONTENTS = await csv().fromFile(in_path, {autoClose: true});
-    let playlists = [{}];
+export async function morph(in_path, out_path) {
 
-    APPLE_MUSIC_CONTENTS.forEach((song, song_index) => {
+    async function write(data) {
 
+        await jsonfile.writeFile(
+            out_path,
+            data,
+            {
+                encoding: "utf-8",
+                spaces: 4
+            }
+        ).catch((err) => {
+            FUNCS_LOGGER.error({"error in writing data": err});
+
+        });
+
+    };
     
+    await jsonfile.readFile(
+        in_path,
+        {
+            encoding: "utf-8"
+        }
+    ).then((apple_music_contents) => {
+
+        let playlists = [];
+
+        for (const [P, D] of Object.entries(apple_music_contents)) {
+
+            playlists.push({
+                name: P,
+                songs: D,
+                length: D.length
+            });
+
+        };
+
+        FUNCS_LOGGER.info({"playlists 1st item": playlists[0]});
+
+        return playlists;
+    }).catch((err) => {
+        FUNCS_LOGGER.error({"error in processing data": err});
+
+    }).then(async (formatted_playlists) => {
+
+        await write(formatted_playlists);
+
     });
 
 };

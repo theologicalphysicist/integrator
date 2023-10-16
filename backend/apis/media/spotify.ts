@@ -8,7 +8,7 @@ import { Verbal } from "../../utils/logger.js";
 
 
 //_ TOKENS & AUTH
-export const getAuthCode = async (code: string, redirect_uri: string, spotify_accounts_client: AxiosInstance): Promise<GeneralResponse> => {
+export const getAuthCode = async (code: string, redirect_uri: string, spotify_accounts_client: AxiosInstance, logger: Verbal): Promise<GeneralResponse> => {
     let error: ErrorResponse = {
         present: false,
         details: null
@@ -28,17 +28,21 @@ export const getAuthCode = async (code: string, redirect_uri: string, spotify_ac
         data = token_res.data;
 
     }).catch((err: AxiosError) => {
+
         error = {
             present: true,
             ...formatAxiosError(err)
         };
+
+        logger.error(error);
+
     });
 
     return wrapResponse(error, data);
 };
 
 
-export const refreshToken = async (r_token: string, spotify_accounts_client: AxiosInstance): Promise<GeneralResponse> => {
+export const refreshToken = async (r_token: string, spotify_accounts_client: AxiosInstance, logger: Verbal): Promise<GeneralResponse> => {
     let error: ErrorResponse = {
         present: false,
         details: null
@@ -57,10 +61,12 @@ export const refreshToken = async (r_token: string, spotify_accounts_client: Axi
         data = token_res.data;
 
     }).catch((err: AxiosError) => {
+
         error = {
             present: true,
             ...formatAxiosError(err)
         };
+
     });
 
     return wrapResponse(error, data);
@@ -132,31 +138,35 @@ export const getPlaylists = async (spotify_api_client: AxiosInstance): Promise<G
 };
 
 
-export async function createPlaylist(spotify_api_client: AxiosInstance, user_id: string, playlist_name: string, playlist_desc: string): Promise<GeneralResponse> {
+export async function createPlaylist(api_client: AxiosInstance, user_id: string, playlist_name: string, logger: Verbal, playlist_desc?: string): Promise<GeneralResponse> {
     let error: ErrorResponse = {
         present: false,
         details: null
     };
     let data: any = {};
 
-    await spotify_api_client.request({
-        method: "post",
-        url: `users/${user_id}/playlists`,
-        params: {
-            "name": playlist_name,
-            "description": playlist_desc,
-            "public": false
+    await api_client.request({
+        method: "POST",
+        url: `/users/${user_id}/playlists`,
+        data: {
+            name: playlist_name,
+            description: playlist_desc,
+            public: false
         }
-    })
-    .then((playlist_res) => {
+    }).then((playlist_res: AxiosResponse) => {
+
+        logger.info(playlist_res.data);
 
         data = playlist_res.data;
 
-    }).catch((err) => {
+    }).catch((err: any) => {
+        logger.error({err});
+
         error = {
             present: true,
             ...formatAxiosError(err)
         };
+
     });
 
     return wrapResponse(error, data);
@@ -212,16 +222,16 @@ export async function getCurrentUser(spotify_api_client: AxiosInstance, logger: 
     let data: any = {};
 
     await spotify_api_client.request({
-    
-    })
-    .then((user_res: AxiosResponse) => {
+        method: "GET",
+        url: "/me"
+    }).then((user_res: AxiosResponse) => {
 
         if (checkEnvironment()) logger.info(user_res.data);
 
         data = user_res.data;
 
-    })
-    .catch((err: AxiosError) => {
+    }).catch((err: AxiosError) => {
+        logger.error({err});
         
         if (checkEnvironment()) logger.error(err.message);
 
@@ -229,6 +239,7 @@ export async function getCurrentUser(spotify_api_client: AxiosInstance, logger: 
             present: true,
             ...formatAxiosError(err)
         };
+
     });
 
     return wrapResponse(error, data);

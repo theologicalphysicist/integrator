@@ -1,3 +1,6 @@
+import jsonfile from "jsonfile";
+
+
 export const ERROR_CODES = new Map([
     [400, "Bad Request".toUpperCase()],
     [401, "Unauthorized".toUpperCase()],
@@ -40,9 +43,23 @@ export const ERROR_CODES = new Map([
     [510, "Not Extended".toUpperCase()],
     [511, "Network Authentication Required".toUpperCase()]
 ]);
-const BUGS_URL = "https://github.com/theologicalphysicist/integrator/issues";
-const DEFAULT_DETAILS: string = `an unknown error has occurred. if this persists, report to ${BUGS_URL} with the 'bug' tag.`;
-export const ERROR_MESSAGE = (code: number = 500, error_details: string = DEFAULT_DETAILS) => {
+let default_details: string;
+
+
+await jsonfile.readFile(
+    "./package.json",
+    {
+        encoding: "utf-8"
+    }
+).then((package_json: any) => {
+
+    default_details = `an unknown error has occurred. if this persists, report to ${package_json.bugs.url} with the 'bug' tag.`;
+
+});
+
+
+export const ERROR_MESSAGE = (code: number = 500, error_details: string = default_details) => {
+    
     return {
         statusCode: code,
         error: ERROR_CODES.get(code),

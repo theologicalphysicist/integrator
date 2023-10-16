@@ -1,12 +1,13 @@
-import Express, {Request, Response, Router, NextFunction} from "express";
+import {Request, Response, Router, NextFunction} from "express";
 
 //_ LOCAL
-import { getPlaylist } from "../apis/media/apple_music.js";
+import { getAppleMusicPlaylist } from "../apis/media/applemusic.js";
 
 import { Verbal } from "../utils/logger.js";
 import { ERROR_MESSAGE } from "../utils/error.js";
 import { GeneralResponse, IRequest } from "../utils/types.js";
 import { checkEnvironment } from "../utils/func.js";
+
 
 export const APPLE_MUSIC_ROUTER: Router = Router();
 const APPLE_MUSIC_LOGGER = new Verbal("🎼apple music🎼");
@@ -26,8 +27,8 @@ APPLE_MUSIC_ROUTER.use((req: Request & Partial<IRequest>, res: Response, next: N
 
 APPLE_MUSIC_ROUTER.use("/resource", (req: Request & Partial<IRequest>, res: Response, next: NextFunction) => {
 
-    if (req.query.playlistName) req.queryParameters!.playlistName = `${req.query.playlistName}`;
-    if (req.query.includeSongs) req.queryParameters!.includeSongs = ["True", "true"].includes(`${req.query.includeSongs}`);
+    if (req.query.playlistName) {req.queryParameters!.playlistName = `${req.query.playlistName}`};
+    if (req.query.includeSongs) {req.queryParameters!.includeSongs = ["t", "true"].includes(`${req.query.includeSongs}`.toLowerCase())};
 
     next();
 });
@@ -38,8 +39,10 @@ APPLE_MUSIC_ROUTER.get("/resource/playlist", async (req: Request & Partial<IRequ
 
     if (!req.queryParameters?.playlistName) next(ERROR_MESSAGE(400, "no playlist name provided."));
 
-    await getPlaylist(
-        req.queryParameters?.playlistName!
+    await getAppleMusicPlaylist(
+        APPLE_MUSIC_LOGGER,
+        req.queryParameters?.includeSongs!, //* request only names of playlists or full details
+        [req.queryParameters?.playlistName!]
     ).then((apple_music_res: GeneralResponse) => {
         
         if (checkEnvironment()) APPLE_MUSIC_LOGGER.info(apple_music_res);

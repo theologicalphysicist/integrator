@@ -1,13 +1,22 @@
 //_ UTILS
 export type LogData = string | Record<any, any> | object | number;
 
+export enum Framework {
+    EXPRESS = "morgan",
+    KOA = "koa",
+    MORGAN = "morgan",
+    WINSTON = "winston"
+};
+
+
 //_ REQUESTS
 export interface IRequest {
     queryParameters: {
         playlistName?: string,
         includeSongs?: boolean
     }
-}
+};
+
 
 //_ RESPONSES & ERRORS
 export interface ErrorResponse {
@@ -30,11 +39,12 @@ export interface PlaylistParameters {
 };
 
 export interface Playlist {
-    imageURL: string,
+    imageURL?: string,
     name: string,
-    ownerName: string,
+    ownerName?: string,
     length: number,
-    type: string
+    type?: string,
+    songs?: Song[]
 };
 
 export interface Song {

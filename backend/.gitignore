@@ -4,3 +4,7 @@ dist/
 
 #_ DATA
 public/*.csv
+public/*.json
+
+#_ TEST
+test/*.spec.*
