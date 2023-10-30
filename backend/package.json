@@ -13,7 +13,7 @@
     "jasmine-test": "",
     "node-test": "nodemon -x 'ts-node-esm ./test/*.test.ts'",
     "build": "",
-    "spec": "nodemon -x 'npx ts-node-esm -r dotenv/config $SCRIPT dotenv_config_path=.env dotenv_config_debug=true'"
+    "spec": "npx ts-node-esm -r dotenv/config $SCRIPT dotenv_config_path=.env dotenv_config_debug=true"
   },
   "repository": {
     "type": "git",

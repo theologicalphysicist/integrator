@@ -1,1 +1,2 @@
 - [] Need to add bundler/compiler in backend for testing purposes.
+- [] Consider my own session store integration with MongoDB

@@ -55,12 +55,12 @@ export async function deleteIntegration() {
 
 
 //_ TRANSFERS
-export async function transferMusic(full: boolean, source: string, destination: string, session_id: string, items?: string[]): Promise<GeneralResponse> {
+export async function transferMusic(source: string, destination: string, session_id: string, items?: string[], full_transfer: boolean = false): Promise<GeneralResponse> {
     let error: ErrorResponse = {
         present: false,
     };
     let data: any[] = [];
-    let source_data: any, query_filter: any = {"_id": session_id};
+    let source_data: any[] = [], query_filter: any = {"_id": session_id};
     const SESSION_DATA: WithId<Document> | null = await USER_SESSIONS_COLLECTION.findOne(query_filter);
 
     if (!SESSION_DATA) { //* invalid session ID, failed to get session
@@ -70,7 +70,7 @@ export async function transferMusic(full: boolean, source: string, destination: 
             code: 500,
             error: ERROR_CODES.get(500),
             details: ERROR_MESSAGE(500, "can't find session")
-        }
+        };
 
         return wrapResponse(error, data);
     };
@@ -89,10 +89,9 @@ export async function transferMusic(full: boolean, source: string, destination: 
 
                 await getAppleMusicPlaylist(
                     INTEGRATIONS_LOGGER,
-                    full,
+                    full_transfer,
                     items
                 ).then((apple_music_res: GeneralResponse) => {
-                    INTEGRATIONS_LOGGER.log({apple_music_res});
 
                     if (apple_music_res.error.present) error = apple_music_res.error;
 
@@ -123,8 +122,12 @@ export async function transferMusic(full: boolean, source: string, destination: 
                     present: true,
                     code: 500,
                     error: ERROR_CODES.get(500),
-                    details: ""
-                }
+                    details: {
+                        message: "failed to get source data. invalid source passed."
+                    }
+                };
+                INTEGRATIONS_LOGGER.error({error});
+
             };
         };
 
@@ -150,9 +153,8 @@ export async function transferMusic(full: boolean, source: string, destination: 
                         SPOTIFY_ACCOUNTS_INSTANCE(process.env.SPOTIFY_CLIENT_ID, process.env.SPOTIFY_CLIENT_SECRET),
                         INTEGRATIONS_LOGGER
                     ).then(async (token_res: GeneralResponse) => {
-                        INTEGRATIONS_LOGGER.log({token_res});
 
-                        if (token_res.error.present) throw new Error(JSON.stringify(token_res.error));
+                        if (token_res.error.present) throw new Error(JSON.stringify(token_res.error)); //! better error handling is needed here
 
                         spotify_tokens = {
                             ...spotify_tokens,
@@ -181,7 +183,10 @@ export async function transferMusic(full: boolean, source: string, destination: 
                                 upsert: true
                             }
                         );
-                        INTEGRATIONS_LOGGER.log({UPDATE_TOKENS_RES});
+                        INTEGRATIONS_LOGGER.log({
+                            message: "spotify tokens soccessfully updated", 
+                            UPDATE_TOKENS_RES
+                        });
 
                     }).catch((err: any) => {
                         INTEGRATIONS_LOGGER.error({err});
@@ -190,7 +195,7 @@ export async function transferMusic(full: boolean, source: string, destination: 
 
                 };
 
-                source_data.forEach(async (s_d: any) => {
+                source_data.forEach(async (s_d: any) => { //TODO: check if playlist exists first, if so, then ignore unless transferring songs, then just merge songs.
 
                     await createPlaylist(
                         SPOTIFY_API_INSTANCE(spotify_tokens.tokenType, spotify_tokens.accessToken), 
@@ -201,13 +206,7 @@ export async function transferMusic(full: boolean, source: string, destination: 
 
                         if (spotify_res.error.present) error = spotify_res.error;
 
-                        INTEGRATIONS_LOGGER.log(spotify_res.data);
-
-                        data.push({
-                            item: s_d,
-                            response: spotify_res
-                        });
-
+                        return spotify_res;
                     }).catch((err: any) => {
                         INTEGRATIONS_LOGGER.error({err});
 
@@ -218,9 +217,12 @@ export async function transferMusic(full: boolean, source: string, destination: 
                             details: ERROR_MESSAGE(500, JSON.stringify(err))
                         };
 
+                        return err;
+                    }).then((source_data_response: any) => {
+
                         data.push({
                             item: s_d,
-                            response: err
+                            response: source_data_response
                         });
 
                     });

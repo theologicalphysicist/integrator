@@ -14,17 +14,18 @@ import MongoStore from "connect-mongo";
 import NOTION_ROUTER from "./routers/notion.js";
 import SPOTIFY_ROUTER from "./routers/spotify.js";
 import GITHUB_ROUTER from "./routers/github.js";
-import { APPLE_MUSIC_ROUTER } from "./routers/applemusic.js";
+import APPLE_MUSIC_ROUTER from "./routers/applemusic.js";
+import INTEGRATIONS_ROUTER from "./routers/integrations.js";
 
 //_ LOCAL UTILITIES
 import { MONGODB_URL } from "./utils/const.js";
 import { ERROR_MESSAGE } from "./utils/error.js";
-import {RequestLog, ResponseLog, Verbal} from "./utils/logger.js";
+import {Verbal} from "./utils/logger.js";
 import { CSVtoJSON, generateRandomString } from "./utils/func.js";
+import { Framework } from "./utils/types.js";
 
 //_ CONTROLLERS
 import { MONGODB_CLIENT } from "./apis/clients.js";
-import { Framework } from "utils/types.js";
 
 
 const app = Express();
@@ -189,10 +190,11 @@ app.use("/apple_music", APPLE_MUSIC_ROUTER);
 
 
 //_ GITHUB
-app.use("/github", GITHUB_ROUTER)
+app.use("/github", GITHUB_ROUTER);
 
 
-//TODO: CONSIDER WRAP-RESPONSE FUNCTION FOR ALL API FUNCS
+//_INTEGRATIONS
+app.use("/integrations", INTEGRATIONS_ROUTER);
 
 
 //_ CONFIG

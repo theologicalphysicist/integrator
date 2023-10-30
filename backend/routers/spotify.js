@@ -21,7 +21,6 @@ const SPOTIFY_LOGGER = new Verbal("spotify");
 
 //_ MIDDLEWARE
 SPOTIFY_ROUTER.use((req, res, next) => {
-
     SPOTIFY_LOGGER.log({path: req.path});
 
     if (!["/callback", "/spotify.html"].includes(req.path)) {
@@ -50,7 +49,6 @@ SPOTIFY_ROUTER.use((req, res, next) => {
     } else {
         next();
     };
-
 
 });
 

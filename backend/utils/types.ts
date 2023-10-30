@@ -8,13 +8,31 @@ export enum Framework {
     WINSTON = "winston"
 };
 
+export type Sources = "spotify" | "applemusic" | "notion" | "to-do" | "github";
+
+export enum TransferType {
+    MUSIC = "music",
+    PRODUCTIVITY = "productivity"
+};
+
 
 //_ REQUESTS
 export interface IRequest {
     queryParameters: {
         playlistName?: string,
-        includeSongs?: boolean
-    }
+        includeSongs?: boolean,
+        integrations: {
+            type?: TransferType,
+            source?: Sources,
+            destination?: Sources,
+            transfer: {
+                fullTransfer?: boolean,
+                items?: string[]
+            }
+        }
+    },
+    currentSession: any,
+    currentCookies: any
 };
 
 

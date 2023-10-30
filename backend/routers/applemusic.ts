@@ -9,17 +9,13 @@ import { GeneralResponse, IRequest } from "../utils/types.js";
 import { checkEnvironment } from "../utils/func.js";
 
 
-export const APPLE_MUSIC_ROUTER: Router = Router();
+const APPLE_MUSIC_ROUTER: Router = Router();
 const APPLE_MUSIC_LOGGER = new Verbal("🎼apple music🎼");
 
 
 //_ MIDDLEWARE
 APPLE_MUSIC_ROUTER.use((req: Request & Partial<IRequest>, res: Response, next: NextFunction) => {
     APPLE_MUSIC_LOGGER.info("request for apple music came in!");
-
-    req.queryParameters = {
-        ...req.queryParameters
-    }
 
     next();
 });
@@ -47,7 +43,7 @@ APPLE_MUSIC_ROUTER.get("/resource/playlist", async (req: Request & Partial<IRequ
         
         if (checkEnvironment()) APPLE_MUSIC_LOGGER.info(apple_music_res);
 
-        if (apple_music_res.error.present) next(ERROR_MESSAGE(apple_music_res.error.code, apple_music_res.error.details))
+        if (apple_music_res.error.present) next(ERROR_MESSAGE(apple_music_res.error.code, apple_music_res.error.details));
 
         res.status(200).send(apple_music_res.data);
     }).catch((apple_music_err: any) => {
@@ -58,3 +54,5 @@ APPLE_MUSIC_ROUTER.get("/resource/playlist", async (req: Request & Partial<IRequ
     });
         
 });
+
+export default APPLE_MUSIC_ROUTER;
