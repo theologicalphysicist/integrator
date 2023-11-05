@@ -74,7 +74,7 @@ export const refreshToken = async (r_token: string, spotify_accounts_client: Axi
 
 
 //_ PLAYLISTS
-export const getPlaylists = async (spotify_api_client: AxiosInstance): Promise<GeneralResponse> => {
+export const getPlaylists = async (spotify_api_client: AxiosInstance, logger: Verbal): Promise<GeneralResponse> => {
     let finished: boolean = false;
     let playlist_params: PlaylistParameters = {
         limit: 50,
@@ -110,8 +110,8 @@ export const getPlaylists = async (spotify_api_client: AxiosInstance): Promise<G
             method: "get",
             url: "/me/playlists",
             params: playlist_params,
-        })
-        .then((playlist_res: AxiosResponse) => { 
+        }).then((playlist_res: AxiosResponse) => { 
+            logger.log(playlist_res.data);
 
             data = [...data, ...ProcessPlaylists(playlist_res.data.items)];
 
@@ -121,8 +121,8 @@ export const getPlaylists = async (spotify_api_client: AxiosInstance): Promise<G
                 playlist_params.offset = queryString.parseUrl(playlist_res.data.next).query.offset?.toString();
             };
 
-        })
-        .catch((err: AxiosError) => {
+        }).catch((err: AxiosError) => {
+            logger.error(err.toJSON());
 
             error = {
                 present: true,

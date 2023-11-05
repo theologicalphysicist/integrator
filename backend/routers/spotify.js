@@ -194,22 +194,19 @@ SPOTIFY_ROUTER.get("/resource/playlists", async (req, res, next) => {
     let token_type = req.currentSession.spotify.tokenType;
     let access_token = req.currentSession.spotify.accessToken;
 
-    await getPlaylists(SPOTIFY_API_INSTANCE(token_type, access_token))
-        .then((spotify_res) => {
-            
-            if (spotify_res.error.present) throw new Error(JSON.stringify(spotify_res.error));
+    await getPlaylists(
+        SPOTIFY_API_INSTANCE(token_type, access_token),
+        SPOTIFY_LOGGER
+    ).then((spotify_res) => {
+        
+        if (spotify_res.error.present) next(spotify_res.error);
 
-            res.status(200).json(spotify_res.data)
-        })
-        .catch((err) => {
-            const ERROR = JSON.parse(err.message);
-            console.log({ERROR});
+        res.status(200).json(spotify_res.data)
+    }).catch((err) => {
+        SPOTIFY_LOGGER.error({err});
 
-            next({
-                ...ERROR_MESSAGE(ERROR.code),
-                details: JSON.parse(ERROR.details),
-            });
-        });
+        next(ERROR_MESSAGE(500, err.toString()));
+    });
     
 });
 

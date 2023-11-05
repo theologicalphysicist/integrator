@@ -26,8 +26,7 @@ INTEGRATIONS_ROUTER.use(async (req: Request & Partial<IRequest>, res: Response, 
     };
 
     //@ts-ignore
-    await req.sessionStore.get(req.query.sessionID, (err, sess) => { 
-        INTEGRATIONS_LOGGER.log("HERE 2");
+    req.sessionStore.get(req.query.sessionID, (err: any, sess: any) => { 
 
         if (!sess) next({ //* invalid request, bad session id
             ...ERROR_MESSAGE(400),
@@ -35,34 +34,32 @@ INTEGRATIONS_ROUTER.use(async (req: Request & Partial<IRequest>, res: Response, 
         });
 
         req.currentSession = sess;
-        req.currentCookies = {
-            cookie: {...sess.cookie},
-            id: sess.cookieID ?? null
+
+        if (!["/read", "/list", "/delete"].includes(req.path)) { //* paths in list do not require source & destination
+
+            if (
+                !req.query.source || 
+                !req.query.destination
+            ) next({ //* invalid parameters 
+                ...ERROR_MESSAGE(400),
+                details: "invald request query parameters"
+            });
+
+            req.queryParameters = {
+                ...req.queryParameters,
+                integrations: {
+                    source: `${req.query.source}`,
+                    destination: `${req.query.destination}`,
+                    transfer: {}
+                }
+            };
+
         };
+
+        next();
 
     });
 
-    if (!["/read", "/list", "delete"].includes(req.path)) { //* paths in list do not require source & destination
-
-        if (
-            !req.query.source || 
-            !req.query.destination
-        ) next({ //* invalid 
-            ...ERROR_MESSAGE(400),
-            details: "invald request query parameters"
-        });
-
-        req.queryParameters = {
-            ...req.queryParameters,
-            //@ts-ignore
-            source: `${req.query.source}`,
-            //@ts-ignore
-            destination: `${req.query.destination}`
-        };
-
-    }
-
-    next();
     
 });
 
@@ -90,7 +87,8 @@ INTEGRATIONS_ROUTER.use("/transfer",async (req: Request & Partial<IRequest>, res
         type: `${req.query.type}`,
         transfer: {
             items: items,
-            fullTransfer: req.query.fullTransfer?.toString() == "true"
+            fullTransfer: req.query.fullTransfer?.toString() == "true",
+            sessionID: `${req.query.sessionID}` //TODO: tidy this up later!
         }
     };
 
@@ -99,34 +97,43 @@ INTEGRATIONS_ROUTER.use("/transfer",async (req: Request & Partial<IRequest>, res
 });
 
 
-
 //_ ROUTES
 INTEGRATIONS_ROUTER.post("/transfer", async (req: Request & Partial<IRequest>, res: Response, next: NextFunction) => {
-    INTEGRATIONS_LOGGER.log(JSON.stringify(req.currentSession, null, 4));
+    INTEGRATIONS_LOGGER.log(JSON.stringify(req.queryParameters?.integrations, null, 4));
+    INTEGRATIONS_LOGGER.log(JSON.stringify({values: Object.values(TransferType)}, null, 4));
 
     if (req.queryParameters?.integrations.type == TransferType.MUSIC) {
-        INTEGRATIONS_LOGGER.log("would execute transfer here");
+        INTEGRATIONS_LOGGER.log("executing music transfer");
 
-        // await transferMusic(
-        //     `${req.queryParameters.integrations.source}`,
-        //     `${req.queryParameters.integrations.destination}`,
-        //     req.currentSession.sessionID,
-        //     req.queryParameters.integrations.transfer.items,
-        //     req.queryParameters.integrations.transfer.fullTransfer
-        // ).then((integrations_res: GeneralResponse) => {
+        await transferMusic(
+            `${req.queryParameters.integrations.source}`,
+            `${req.queryParameters.integrations.destination}`,
+            req.currentSession,
+            req.queryParameters.integrations.transfer.sessionID!,
+            req.queryParameters.integrations.transfer.items,
+            req.queryParameters.integrations.transfer.fullTransfer
+        ).then((integrations_res: GeneralResponse) => {
 
-        //     if (checkEnvironment()) INTEGRATIONS_LOGGER.info(integrations_res);
+            if (checkEnvironment()) INTEGRATIONS_LOGGER.info(integrations_res);
 
-        //     if (integrations_res.error.present) next(ERROR_MESSAGE(integrations_res.error.code, integrations_res.error.details));
+            if (integrations_res.error.present) {
 
-        //     res.status(200).send(integrations_res.data);
-        // }).catch((integrations_err: any) => {
-        //     INTEGRATIONS_LOGGER.error({err: integrations_err});
+                next(integrations_res.error);
+            } else {
 
-        //     next(integrations_err);
-        // });
+                res.status(200).send(integrations_res.data);
+            };
 
-    };
+        }).catch((integrations_err: any) => {
+            INTEGRATIONS_LOGGER.error({err: integrations_err});
+
+            next(integrations_err);
+        });
+
+    } else if (req.queryParameters?.integrations.type == TransferType.PRODUCTIVITY) {
+        INTEGRATIONS_LOGGER.log("executing productivity transfer");
+
+    }
 
 });
 

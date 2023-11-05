@@ -6,7 +6,7 @@ import { AxiosInstance } from "axios";
 import { MONGODB_CLIENT, SPOTIFY_ACCOUNTS_INSTANCE, SPOTIFY_API_INSTANCE } from "./clients.js";
 
 import { getAppleMusicPlaylist } from "./media/applemusic.js";
-import { createPlaylist, refreshToken } from "./media/spotify.js";
+import { createPlaylist as createSpotifyPlaylist, refreshToken } from "./media/spotify.js";
 
 import { ErrorResponse, GeneralResponse } from "../utils/types.js";
 import { ERROR_CODES, ERROR_MESSAGE } from "../utils/error.js";
@@ -55,27 +55,14 @@ export async function deleteIntegration() {
 
 
 //_ TRANSFERS
-export async function transferMusic(source: string, destination: string, session_id: string, items?: string[], full_transfer: boolean = false): Promise<GeneralResponse> {
+export async function transferMusic(source: string, destination: string, session: any, session_id: string, items?: string[], full_transfer: boolean = false): Promise<GeneralResponse> {
     let error: ErrorResponse = {
         present: false,
     };
     let data: any[] = [];
-    let source_data: any[] = [], query_filter: any = {"_id": session_id};
-    const SESSION_DATA: WithId<Document> | null = await USER_SESSIONS_COLLECTION.findOne(query_filter);
+    const QUERY_FILTER: any = {"_id": session_id};
+    let source_data: any[] = [];
 
-    if (!SESSION_DATA) { //* invalid session ID, failed to get session
-
-        error = {
-            present: true,
-            code: 500,
-            error: ERROR_CODES.get(500),
-            details: ERROR_MESSAGE(500, "can't find session")
-        };
-
-        return wrapResponse(error, data);
-    };
-
-    //_ GET
     async function get() {
 
         switch (source.toLowerCase().replaceAll(" ", "")) {
@@ -96,6 +83,8 @@ export async function transferMusic(source: string, destination: string, session
                     if (apple_music_res.error.present) error = apple_music_res.error;
 
                     source_data = apple_music_res.data;
+
+                    INTEGRATIONS_LOGGER.log("APPLE MUSIC DATA FOUND");
 
                 }).catch((err: any) => {
                     INTEGRATIONS_LOGGER.error({err});
@@ -118,13 +107,12 @@ export async function transferMusic(source: string, destination: string, session
             };
 
             default: {
+
                 error = {
                     present: true,
                     code: 500,
                     error: ERROR_CODES.get(500),
-                    details: {
-                        message: "failed to get source data. invalid source passed."
-                    }
+                    details: "failed to get source data: invalid source passed."
                 };
                 INTEGRATIONS_LOGGER.error({error});
 
@@ -133,15 +121,13 @@ export async function transferMusic(source: string, destination: string, session
 
     };
 
-    //_ PUT
     async function put() {
 
         switch (destination.toLowerCase().replaceAll(" ", "")) {
 
             case ("spotify"): { //* tidy this up
-                //TODO: consider some sort of function to check & update tokens automatically...and save and hold this in prod
-                //_ SPOTIFY TOOLS
-                let spotify_tokens = SESSION_DATA!.session.spotify;
+                //TODO: consider some sort of function to check & update tokens automatically...and save and hold this in prod (like cache)
+                let spotify_tokens = session.spotify;
                 //_ DATE
                 const NOW = new Date().getTime();
                 INTEGRATIONS_LOGGER.log({NOW});
@@ -163,19 +149,14 @@ export async function transferMusic(source: string, destination: string, session
                             expiryTime: (token_res.data.expires_in * 1000) + Date.now(),
                             tokenType: token_res.data.token_type
                         };
-
+        
+                        //TODO: either change this to use session store, or create a new session store
                         const UPDATE_TOKENS_RES = await USER_SESSIONS_COLLECTION.updateOne(
-                            query_filter,
+                            QUERY_FILTER,
                             { 
                                 $set: { 
                                     session: {
-                                        spotify: {
-                                            refreshToken: spotify_tokens.refreshToken,
-                                            accessToken: token_res.data.access_token,
-                                            scope: token_res.data.scope,
-                                            expiryTime: (token_res.data.expires_in * 1000) + Date.now(),
-                                            tokenType: token_res.data.token_type
-                                        }
+                                        spotify: {...spotify_tokens}
                                     }
                                 }
                             }, 
@@ -185,28 +166,9 @@ export async function transferMusic(source: string, destination: string, session
                         );
                         INTEGRATIONS_LOGGER.log({
                             message: "spotify tokens soccessfully updated", 
-                            UPDATE_TOKENS_RES
+                            ...UPDATE_TOKENS_RES
                         });
 
-                    }).catch((err: any) => {
-                        INTEGRATIONS_LOGGER.error({err});
-
-                    });
-
-                };
-
-                source_data.forEach(async (s_d: any) => { //TODO: check if playlist exists first, if so, then ignore unless transferring songs, then just merge songs.
-
-                    await createPlaylist(
-                        SPOTIFY_API_INSTANCE(spotify_tokens.tokenType, spotify_tokens.accessToken), 
-                        `${process.env.SPOTIFY_USER_ID}`, 
-                        s_d, 
-                        INTEGRATIONS_LOGGER
-                    ).then((spotify_res: GeneralResponse) => {
-
-                        if (spotify_res.error.present) error = spotify_res.error;
-
-                        return spotify_res;
                     }).catch((err: any) => {
                         INTEGRATIONS_LOGGER.error({err});
 
@@ -214,20 +176,53 @@ export async function transferMusic(source: string, destination: string, session
                             present: true,
                             code: 500,
                             error: ERROR_CODES.get(500),
-                            details: ERROR_MESSAGE(500, JSON.stringify(err))
+                            details: ERROR_MESSAGE(500, "failed to refresh tokens. aborted.")
                         };
 
-                        return err;
-                    }).then((source_data_response: any) => {
+                    });
 
-                        data.push({
-                            item: s_d,
-                            response: source_data_response
+                };
+
+                if (!error.present) { //* ie., if error hasn't occured yet
+
+                    source_data.forEach(async (s_d: any) => { //TODO: check if playlist exists first, if so, then ignore unless transferring songs, then just merge songs.
+
+                        await createSpotifyPlaylist(
+                            SPOTIFY_API_INSTANCE(spotify_tokens.tokenType, spotify_tokens.accessToken), 
+                            `${process.env.SPOTIFY_USER_ID}`, 
+                            s_d, 
+                            INTEGRATIONS_LOGGER
+                        ).then((spotify_res: GeneralResponse) => {
+
+                            if (spotify_res.error.present) throw new Error(JSON.stringify(spotify_res.error.details))
+
+                            return spotify_res;
+                        }).catch((err: any) => {
+                            INTEGRATIONS_LOGGER.error({err});
+
+                            error = {
+                                present: true,
+                                code: 500,
+                                error: ERROR_CODES.get(500),
+                                details: ERROR_MESSAGE(
+                                    500, 
+                                    typeof err == "string" ? err : JSON.stringify(err)
+                                )
+                            };
+
+                            return err;
+                        }).then((source_data_response: any) => {
+
+                            data.push({
+                                item: s_d,
+                                response: source_data_response
+                            });
+
                         });
 
                     });
 
-                });
+                };
 
                 break;
             };
@@ -246,14 +241,13 @@ export async function transferMusic(source: string, destination: string, session
                     present: true,
                     code: 500,
                     error: ERROR_CODES.get(500),
-                    details: ""
+                    details: "invalid destination. aborted."
                 }
             };
         }
 
     };
 
-    //_ STORE
     async function store() {
 
         // if (SESSION_DATA.session.integr)
@@ -264,7 +258,12 @@ export async function transferMusic(source: string, destination: string, session
     };
 
     await get();
-    await put();
+
+    if (!error.present) {
+
+        await put();
+
+    };
 
     return wrapResponse(error, data);
 };

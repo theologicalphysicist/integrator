@@ -65,6 +65,8 @@ app.use(session({
     },
 }));
 
+//_ CUSTOM MIDDLEWARE
+
 
 //_ OTHER
 app.get("/", (req, res) => {

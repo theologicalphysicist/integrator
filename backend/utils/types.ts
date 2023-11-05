@@ -8,7 +8,7 @@ export enum Framework {
     WINSTON = "winston"
 };
 
-export type Sources = "spotify" | "applemusic" | "notion" | "to-do" | "github";
+export const Sources: Array<string> = ["spotify", "applemusic", "notion", "to-do", "github"];
 
 export enum TransferType {
     MUSIC = "music",
@@ -23,11 +23,12 @@ export interface IRequest {
         includeSongs?: boolean,
         integrations: {
             type?: TransferType,
-            source?: Sources,
-            destination?: Sources,
+            source?: string,
+            destination?: string,
             transfer: {
                 fullTransfer?: boolean,
-                items?: string[]
+                items?: string[],
+                sessionID?: string
             }
         }
     },

@@ -6,7 +6,7 @@ import { ERROR_CODES, ERROR_MESSAGE } from "../../utils/error.js";
 import { Verbal } from "../../utils/logger.js";
 
 
-const APPLE_MUSIC_PATH = "./public/applemusic.json";
+const APPLE_MUSIC_PATH = "./.cache/applemusic.json";
 
 
 //_ PLAYLISTS
