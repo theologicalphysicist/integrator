@@ -136,7 +136,8 @@ SPOTIFY_ROUTER.get("/callback", async (req, res, next) => {
         await getAuthCode(
             req.query.code, 
             process.env.SPOTIFY_REDIRECT_URI,
-            SPOTIFY_ACCOUNTS_INSTANCE(process.env.SPOTIFY_CLIENT_ID, process.env.SPOTIFY_CLIENT_SECRET)
+            SPOTIFY_ACCOUNTS_INSTANCE(process.env.SPOTIFY_CLIENT_ID, process.env.SPOTIFY_CLIENT_SECRET),
+            SPOTIFY_LOGGER
         )
         .then((token_res) => {
 
