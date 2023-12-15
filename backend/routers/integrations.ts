@@ -64,7 +64,7 @@ INTEGRATIONS_ROUTER.use(async (req: Request & Partial<IRequest>, res: Response, 
 });
 
 
-INTEGRATIONS_ROUTER.use("/transfer",async (req: Request & Partial<IRequest>, res: Response, next: NextFunction) => {
+INTEGRATIONS_ROUTER.use("/transfer", async (req: Request & Partial<IRequest>, res: Response, next: NextFunction) => {
     let items;
 
     if (!req.query.type || !req.query.items || !req.query.fullTransfer) {
