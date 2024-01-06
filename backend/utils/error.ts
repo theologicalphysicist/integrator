@@ -61,9 +61,9 @@ await jsonfile.readFile(
 export const ERROR_MESSAGE = (code: number = 500, error_details: string = default_details) => {
     
     return {
-        statusCode: code,
+        code: code,
         error: ERROR_CODES.get(code),
         details: error_details,
-        time: new Date()
+        time: new Date().toLocaleDateString()
     };
 }; //* 500 corresponds to default error details

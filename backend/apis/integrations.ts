@@ -1,17 +1,20 @@
 import { MongoClient, Db, Collection, WithId, Document } from "mongodb";
+import mongoose, { Model } from "mongoose";
 import {v4} from "uuid";
 import { AxiosInstance } from "axios";
 
 //_ LOCAL
 import { MONGODB_CLIENT, SPOTIFY_ACCOUNTS_INSTANCE, SPOTIFY_API_INSTANCE } from "./clients.js";
+import { check } from "./mongo.js";
 
 import { getAppleMusicPlaylist } from "./media/applemusic.js";
 import { createPlaylist as createSpotifyPlaylist, refreshToken } from "./media/spotify.js";
 
-import { ErrorResponse, GeneralResponse } from "../utils/types.js";
+import { ErrorResponse, GeneralResponse, IIntegration, ISession } from "../utils/types.js";
 import { ERROR_CODES, ERROR_MESSAGE } from "../utils/error.js";
 import { wrapResponse } from "../utils/func.js";
 import { Verbal } from "../utils/logger.js";
+import { INTEGRATION } from "utils/db.js";
 
 
 
@@ -20,6 +23,7 @@ const INTEGRATIONS_LOGGER = new Verbal("INTEGRATIONS");
 const INTEGRATIONS_DB_CLIENT: MongoClient = await MONGODB_CLIENT(process.env.MONGODB_USER, process.env.MONGODB_PASSWORD);
 const SESSIONS_DB: Db = INTEGRATIONS_DB_CLIENT.db("sessions");
 const USER_SESSIONS_COLLECTION: Collection = SESSIONS_DB.collection("user_sessions");
+const INTEGRATIONS_COLLECTION: Collection = SESSIONS_DB.collection("integrations", {"checkKeys": true});
 
 
 //_ INTEGRATIONS
@@ -55,7 +59,7 @@ export async function deleteIntegration() {
 
 
 //_ TRANSFERS
-export async function transferMusic(source: string, destination: string, session: any, session_id: string, items?: string[], full_transfer: boolean = false): Promise<GeneralResponse> {
+export async function transferMusic(source: string, destination: string, session: any, session_id: string, integrations_model: Model<IIntegration>, items?: string[], integration_id?: string | null, full_transfer: boolean = false): Promise<GeneralResponse> {
     let error: ErrorResponse = {
         present: false,
     };
@@ -249,10 +253,58 @@ export async function transferMusic(source: string, destination: string, session
     };
 
     async function store() {
+        const UPDATE_TO_DOCUMENT: any = {
+            _id: integration_id, //* will not be set if no integration_id provided
+            source: source,
+            destination: destination,
+            lastSync: Date.now(),
+            type: "music",
+            data: {
+                transferred: items
+            },
+            sessionID: session_id
+        };
 
-        // if (SESSION_DATA.session.integr)
+        const CHECK_RESULT = await check({query: {sessionID: session_id, type: "music"}, model: integrations_model});
 
-        
+        if (CHECK_RESULT.exists) {
+            
+        }
+
+        // const EXISTING_INTEGRATION: mongoose.Document | null = await INTEGRATION.findOneAndUpdate(
+        //     {sessionID: session_id},
+        //     UPDATE_TO_DOCUMENT,
+        //     {
+        //         returnDocument: "before",
+        //         lean: true,
+        //         upsert: false
+        //     }
+        // ).exec();
+
+        // if (!EXISTING_INTEGRATION) { //* no integration exists, so create new
+        //     const NEW_INTEGRATION = new INTEGRATION({...UPDATE_TO_DOCUMENT, _id: v4({})}, {}, {});
+
+        //     await NEW_INTEGRATION.save({
+        //         validateBeforeSave: true,
+        //         checkKeys: true
+        //     }).then((mongoose_res: Document) => {
+
+        //     }).catch((mongoose_err: any) => {
+        //         INTEGRATIONS_LOGGER.error(mongoose_err);
+
+        //         error = {
+        //             present: true,
+        //             ...ERROR_MESSAGE(500, mongoose_err)
+        //         };
+        //     });
+
+        //     data.push({
+        //         message: "new integration created",
+        //         id: NEW_INTEGRATION.id
+        //     });
+        // } else {
+        //     // EXISTING_INTEGRATION.updateOne({})
+        // }
 
 
     };

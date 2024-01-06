@@ -11,6 +11,7 @@ import { Verbal } from "../utils/logger.js";
 const CLIENTS_LOGGER = new Verbal("CLIENTS");
 
 
+//_ SPOTIFY
 export const SPOTIFY_ACCOUNTS_INSTANCE = (client_id, client_secret) => axios.create({
     baseURL: SPOTIFY_ACCOUNTS_URL,
     headers: {
@@ -30,6 +31,7 @@ export const SPOTIFY_API_INSTANCE = (token_type, token) => axios.create({
 });
 
 
+//_ MONGO
 export const MONGODB_CLIENT = async (username, password) => {
     const CLIENT = new MongoClient(MONGODB_URL(username, password));
 

@@ -1,3 +1,5 @@
+import { Model, Document } from "mongoose";
+
 //_ UTILS
 export type LogData = string | Record<any, any> | object | number;
 
@@ -13,6 +15,16 @@ export const Sources: Array<string> = ["spotify", "applemusic", "notion", "to-do
 export enum TransferType {
     MUSIC = "music",
     PRODUCTIVITY = "productivity"
+};
+
+export interface IntegrationParameters {
+    source: string,
+    destination: string,
+    session: any,
+    sessionID: string,
+    items?: string[],
+    integrationID?: string | null,
+    full_transfer: boolean
 };
 
 
@@ -42,7 +54,8 @@ export interface ErrorResponse {
     present: boolean,
     code?: number,
     error?: string,
-    details?: any
+    details?: any,
+    time?: Date | number | string
 };
 
 export interface GeneralResponse {
@@ -72,3 +85,48 @@ export interface Song {
     album: string,
     ISRC: number | null
 };
+
+
+//_ DATABASE
+export interface IIntegration extends Document {
+    _id: string,
+    sessionID: string,
+    source: string,
+    destination: string,
+    lastSync: number,
+    data: {}
+};
+
+export interface ISession extends Document {
+    _id: string,
+    expires: Date | string | number,
+    session: {
+        spotify: {
+            refreshToken: string,
+            accessToken: string,
+            scope: string,
+            expiryTime: number,
+            tokenType: string
+        }
+    }
+};
+
+export interface ReadQuery {
+    query: Partial<IIntegration>,
+    model: Model<IIntegration>,
+    queryID?: string,
+};
+
+export interface ModifierQuery {
+    document: Partial<IIntegration>,
+    model: Model<IIntegration>,
+    documentID?: string
+};
+
+export interface DatabaseResponse {
+    document?: IIntegration,
+    result: boolean,
+    message?: string
+};
+
+//TODO: look into ways to standardize how I create types
