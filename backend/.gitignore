@@ -9,3 +9,5 @@ public/*.json
 
 #_ TEST
 test/*.spec.*
+
+oauth.json

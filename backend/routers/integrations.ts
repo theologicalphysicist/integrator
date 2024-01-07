@@ -98,43 +98,43 @@ INTEGRATIONS_ROUTER.use("/transfer", async (req: Request & Partial<IRequest>, re
 
 
 //_ ROUTES
-INTEGRATIONS_ROUTER.post("/transfer", async (req: Request & Partial<IRequest>, res: Response, next: NextFunction) => {
-    INTEGRATIONS_LOGGER.log(JSON.stringify(req.queryParameters?.integrations, null, 4));
-    INTEGRATIONS_LOGGER.log(JSON.stringify({values: Object.values(TransferType)}, null, 4));
+// INTEGRATIONS_ROUTER.post("/transfer", async (req: Request & Partial<IRequest>, res: Response, next: NextFunction) => {
+//     INTEGRATIONS_LOGGER.log(JSON.stringify(req.queryParameters?.integrations, null, 4));
+//     INTEGRATIONS_LOGGER.log(JSON.stringify({values: Object.values(TransferType)}, null, 4));
 
-    if (req.queryParameters?.integrations.type == TransferType.MUSIC) {
-        INTEGRATIONS_LOGGER.log("executing music transfer");
+//     if (req.queryParameters?.integrations.type == TransferType.MUSIC) {
+//         INTEGRATIONS_LOGGER.log("executing music transfer");
 
-        await transferMusic(
-            `${req.queryParameters.integrations.source}`,
-            `${req.queryParameters.integrations.destination}`,
-            req.currentSession,
-            req.queryParameters.integrations.transfer.sessionID!,
-            req.queryParameters.integrations.transfer.items,
-            req.queryParameters.integrations.transfer.fullTransfer
-        ).then((integrations_res: GeneralResponse) => {
+//         await transferMusic(
+//             `${req.queryParameters.integrations.source}`,
+//             `${req.queryParameters.integrations.destination}`,
+//             req.currentSession,
+//             req.queryParameters.integrations.transfer.sessionID!,
+//             req.queryParameters.integrations.transfer.items,
+//             req.queryParameters.integrations.transfer.fullTransfer
+//         ).then((integrations_res: GeneralResponse) => {
 
-            if (checkEnvironment()) INTEGRATIONS_LOGGER.info(integrations_res);
+//             if (checkEnvironment()) INTEGRATIONS_LOGGER.info(integrations_res);
 
-            if (integrations_res.error.present) {
+//             if (integrations_res.error.present) {
 
-                next(integrations_res.error);
-            } else {
+//                 next(integrations_res.error);
+//             } else {
 
-                res.status(200).send(integrations_res.data);
-            };
+//                 res.status(200).send(integrations_res.data);
+//             };
 
-        }).catch((integrations_err: any) => {
-            INTEGRATIONS_LOGGER.error({err: integrations_err});
+//         }).catch((integrations_err: any) => {
+//             INTEGRATIONS_LOGGER.error({err: integrations_err});
 
-            next(integrations_err);
-        });
+//             next(integrations_err);
+//         });
 
-    } else if (req.queryParameters?.integrations.type == TransferType.PRODUCTIVITY) {
-        INTEGRATIONS_LOGGER.log("executing productivity transfer");
+//     } else if (req.queryParameters?.integrations.type == TransferType.PRODUCTIVITY) {
+//         INTEGRATIONS_LOGGER.log("executing productivity transfer");
 
-    }
+//     }
 
-});
+// });
 
 export default INTEGRATIONS_ROUTER;

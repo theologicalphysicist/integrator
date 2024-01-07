@@ -265,11 +265,11 @@ export async function transferMusic(source: string, destination: string, session
             sessionID: session_id
         };
 
-        const CHECK_RESULT = await check({query: {sessionID: session_id, type: "music"}, model: integrations_model});
+        // const CHECK_RESULT = await check({query: {sessionID: session_id, type: "music"}, model: integrations_model});
 
-        if (CHECK_RESULT.exists) {
+        // if (CHECK_RESULT.exists) {
             
-        }
+        // }
 
         // const EXISTING_INTEGRATION: mongoose.Document | null = await INTEGRATION.findOneAndUpdate(
         //     {sessionID: session_id},

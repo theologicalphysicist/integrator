@@ -70,7 +70,9 @@ app.use(session({
 
 //_ OTHER
 app.get("/", (req, res) => {
-    res.send(`CORS-enabled Integrator App listening on port ${process.env.PORT} \n With sessionID ${req.sessionID}`);
+
+    res.send(req.query);
+    // res.send(`CORS-enabled Integrator App listening on port ${process.env.PORT} \n With sessionID ${req.sessionID}`);
 });
 
 
