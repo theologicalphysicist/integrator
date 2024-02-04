@@ -1,0 +1,32 @@
+@use "../nav";
+@use "../utils";
+@use "../title";
+@use "../loading";
+@use "../global";
+
+
+//_ GENERAL
+body {
+    font-family: Ubuntu;
+}
+
+hr {
+    width: 95%;
+    background-color: #333;
+}
+
+
+//_ DESIGNED COMPONENTS
+div#main {
+    overflow-y: visible;
+    height: fit-content;
+
+    section#main_area {
+        height: 100%;
+        width: 100%;
+        font-family: "Manjari Thin";
+    
+    
+    }
+
+}

@@ -14,16 +14,22 @@ import MongoStore from "connect-mongo";
 import NOTION_ROUTER from "./routers/notion.js";
 import SPOTIFY_ROUTER from "./routers/spotify.js";
 import GITHUB_ROUTER from "./routers/github.js";
+import APPLE_MUSIC_ROUTER from "./routers/applemusic.js";
+import INTEGRATIONS_ROUTER from "./routers/integrations.js";
 
-//_ LOCAL
+//_ LOCAL UTILITIES
 import { MONGODB_URL } from "./utils/const.js";
 import { ERROR_MESSAGE } from "./utils/error.js";
-import {RequestLoggerFormat, ResponseLoggerFormat} from "./utils/logger.js";
-import { generateRandomString } from "./utils/func.js";
+import {Verbal} from "./utils/logger.js";
+import { CSVtoJSON, generateRandomString } from "./utils/func.js";
+import { Framework } from "./utils/types.js";
 
+//_ CONTROLLERS
 import { MONGODB_CLIENT } from "./apis/clients.js";
 
+
 const app = Express();
+const INDEX_LOGGER = new Verbal("index", true, Framework.MORGAN);
 const STORE = MongoStore.create({
     mongoUrl: MONGODB_URL(process.env.MONGODB_USER, process.env.MONGODB_PASSWORD),
     dbName: "sessions",
@@ -31,13 +37,14 @@ const STORE = MongoStore.create({
     stringify: false,
 });
 
+
 //_ MIDDLEWARE
 app.use(cors());
-app.use(morgan((tokens, req, res) => RequestLoggerFormat(tokens, req, res), {
+app.use(morgan((tokens, req, res) => INDEX_LOGGER.request(tokens, req, res), {
     skip: false,
     immediate: true
 }));
-app.use(morgan((tokens, req, res) => ResponseLoggerFormat(tokens, req, res), {
+app.use(morgan((tokens, req, res) => INDEX_LOGGER.response(tokens, req, res), {
     skip: false,
     immediate: false
 }));
@@ -58,10 +65,14 @@ app.use(session({
     },
 }));
 
+//_ CUSTOM MIDDLEWARE
 
-//_ SERVER
+
+//_ OTHER
 app.get("/", (req, res) => {
-    res.send(`CORS-enabled Integrator App listening on port ${process.env.PORT} \n With sessionID ${req.sessionID}`);
+
+    res.send(req.query);
+    // res.send(`CORS-enabled Integrator App listening on port ${process.env.PORT} \n With sessionID ${req.sessionID}`);
 });
 
 
@@ -116,6 +127,37 @@ app.get("/cookie_test", async (req, res) => {
 });
 
 
+app.get("/logger_test", async (req, res, next) => {
+    const LOGGER = new Verbal();
+
+    LOGGER.debug("TESTING THIS");
+    LOGGER.info(JSON.stringify(process.env, null, 2));
+    LOGGER.warn({data: "NOW TESTING JSON"});
+    LOGGER.error(ERROR_MESSAGE(500));
+
+    res.status(200).send({response: "DONE"})
+});
+
+
+app.get("/apple", async (req, res, next) => {
+    const FILE_PATH = new URL("./public/My Apple Music Library.csv", import.meta.url);
+    const FORMATTED_FILE_PATH = new URL("./public/apple_music.json", import.meta.url);
+    // INDEX_LOGGER.debug(FORMATTED_FILE_PATH.pathname);
+
+    await CSVtoJSON(FILE_PATH, FORMATTED_FILE_PATH.pathname)
+        .then((void_value) => {
+
+            res.send({result: true});
+        })
+        .catch((err) => {
+
+            next(ERROR_MESSAGE(500));
+        });
+
+
+});
+
+
 //_ MONGODB
 app.get("/mongo_test", async (req, res) => {
     const CLIENT = await MONGODB_CLIENT(process.env.MONGODB_USER, process.env.MONGODB_PASSWORD);
@@ -144,20 +186,25 @@ app.use("/notion", NOTION_ROUTER);
 app.use("/spotify", SPOTIFY_ROUTER);
 
 
+//_ APPLE MUSIC
+app.use("/apple_music", APPLE_MUSIC_ROUTER);
+
+
 //_ MICROSOFT
 
 
 //_ GITHUB
-app.use("/github", GITHUB_ROUTER)
+app.use("/github", GITHUB_ROUTER);
 
 
-//TODO: CONSIDER WRAP-RESPONSE FUNCTION FOR ALL API FUNCS
+//_INTEGRATIONS
+app.use("/integrations", INTEGRATIONS_ROUTER);
 
 
 //_ CONFIG
 //_ ERROR HANDLING
 app.use((err, req, res, next) => {
-    console.error({err});
+    INDEX_LOGGER.error({err});
 
     res.status(err.statusCode || 500).json({error: err});
 });

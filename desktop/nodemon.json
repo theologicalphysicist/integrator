@@ -1,0 +1,10 @@
+{
+    "colours": true,
+    "ignore": [
+        ".git",
+        "node_modules/**",
+        "src/styles/*.css*",
+        "dist/"
+    ],
+    "ext": "js,json,ts,scss,html"
+}

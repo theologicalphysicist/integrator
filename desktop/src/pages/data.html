@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="Content-Security-Policy" 
+            content="
+                default-src 'self'; 
+                script-src 'self'; 
+                connect-src http://localhost:3000 https://accounts.spotify.com; 
+                img-src 'self' https://i.scdn.co https://mosaic.scdn.co; 
+                style-src 'self' 'unsafe-inline';
+                font-src 'self' data:
+            "
+        >
+        <title>Integrator - Productivity</title>
+        <script type="module" src="../scripts/render/data_renderer.js"></script>
+        <link type="text/css" rel="stylesheet" href="../styles/data.css">
+    </head>
+    <body>
+        <div id="main">
+            <nav id="navigation_area">
+                <img src="../../public/img/favicon-32x32.png" alt="therefore logo">
+            </nav>
+            <header id="main_title"></header>
+            <div id="load_data"></div>
+        </div>
+    </body>
+</html>

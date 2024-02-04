@@ -1,0 +1,3 @@
+- [] Need to add bundler/compiler in backend for testing purposes.
+- [] Consider my own session store integration with MongoDB
+- [] Change all api responses to either send response, or call NextFunction, all within an if statement

@@ -4,9 +4,14 @@ import { MongoClient } from "mongodb";
 import { Client } from "@notionhq/client";
 import { Octokit } from "octokit";
 
-import { SPOTIFY_ACCOUNTS_URL, SPOTIFY_API_URL } from "../utils/const.js";
+import { SPOTIFY_ACCOUNTS_URL, SPOTIFY_API_URL, MONGODB_URL } from "../utils/const.js";
+import { Verbal } from "../utils/logger.js";
 
 
+const CLIENTS_LOGGER = new Verbal("CLIENTS");
+
+
+//_ SPOTIFY
 export const SPOTIFY_ACCOUNTS_INSTANCE = (client_id, client_secret) => axios.create({
     baseURL: SPOTIFY_ACCOUNTS_URL,
     headers: {
@@ -26,14 +31,17 @@ export const SPOTIFY_API_INSTANCE = (token_type, token) => axios.create({
 });
 
 
+//_ MONGO
 export const MONGODB_CLIENT = async (username, password) => {
     const CLIENT = new MongoClient(MONGODB_URL(username, password));
+
     try {
         await CLIENT.connect();
-        console.log(`Connected to the local database`);
+        CLIENTS_LOGGER.log(`connected to database`);
     } catch (err) {
-        console.error(`ERROR: ${err}`);
+        CLIENTS_LOGGER.error(`ERROR: ${err}`);
     };
+
     return CLIENT;
 };
 

@@ -1,0 +1,8 @@
+{
+    "verbose": false,
+    "colours": true,
+    "watch": [
+
+    ],
+    "ext": "js,ts,json"
+}
