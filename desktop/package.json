@@ -2,13 +2,15 @@
     "name": "integrator",
     "version": "0.1.0",
     "description": "tool to integrate productivity tools",
-    "main": "main.js",
+    "main": "index.ts",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "start": "electron-forge start",
         "electron-dev": "electron .",
-        "predev": "cd ./src/styles && sass ./scss/data/data.scss ./data.css && sass ./scss/media/media.scss ./media.css && sass ./scss/home/home.scss ./home.css",
-        "dev": "electronmon --trace-warnings .",
+        "predev": "rm -r dist && mkdir dist && cd ./src/styles && sass ./scss/data/data.scss ./data.css && sass ./scss/integration/integration.scss ./integration.css && sass ./scss/home/home.scss ./home.css",
+        "build": "npx tsc --project . && npx tsc --project src/scripts && npx tsc --project src/scripts/render",
+        "postbuild": "cp -r src/pages src/styles dist/src && cp -r public .env* dist && rm -r dist/src/styles/scss",
+        "dev": "npm run build && electronmon --trace-warnings dist/index.js",
         "package": "electron-forge package",
         "make": "electron-forge make"
     },
@@ -20,21 +22,26 @@
     "author": "",
     "license": "ISC",
     "electronmon": {
-        "patterns": ["./src/"]
+        "patterns": [
+            "./src/"
+        ]
     },
     "bugs": {
         "url": "https://github.com/theologicalphysicist/integrator/issues"
     },
     "homepage": "https://github.com/theologicalphysicist/integrator#readme",
     "devDependencies": {
-        "@electron-forge/cli": "^6.0.0-beta.67",
+        "@electron-forge/cli": "^6.4.2",
         "@types/electron": "^1.6.10",
         "@types/keyv": "^4.2.0",
         "dotenv": "^16.0.3",
-        "electron": "^21.4.4"
+        "electron": "^28.1.3",
+        "ts-node": "^10.9.2",
+        "tslib": "^2.6.2",
+        "typescript": "^5.3.3"
     },
     "dependencies": {
-        "axios": "^1.3.5",
+        "axios": "^1.6.5",
         "boolean": "^3.2.0",
         "buffer-crc32": "^0.2.13",
         "cacheable-request": "^6.1.0",
@@ -63,7 +70,7 @@
         "global-agent": "^3.0.0",
         "global-tunnel-ng": "^2.7.1",
         "globalthis": "^1.0.3",
-        "got": "^9.6.0",
+        "got": "^12.6.1",
         "graceful-fs": "^4.2.10",
         "has": "^1.0.3",
         "has-property-descriptors": "^1.0.0",
@@ -74,7 +81,7 @@
         "json-buffer": "^3.0.0",
         "json-stringify-safe": "^5.0.1",
         "jsonfile": "^4.0.0",
-        "keyv": "^3.1.0",
+        "keyv": "^4.5.4",
         "lodash": "^4.17.21",
         "log": "^6.3.1",
         "lowercase-keys": "^1.0.1",

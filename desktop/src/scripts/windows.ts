@@ -1,13 +1,13 @@
-const {BrowserWindow} = require("electron");
-const path = require("path");
+import { BrowserWindow } from "electron";
+import path from "path";
 
 
-const MainWindow = () => {
+export const MainWindow = () => {
     const MAIN_WINDOW = new BrowserWindow({
         width: 800,
         height: 600,
         webPreferences: {
-            preload: path.join(__dirname, "/scripts/preload.js"),
+            preload: path.join(__dirname, "./preload.js"),
             minimumFontSize: 10
         },
         movable: true,
@@ -22,19 +22,19 @@ const MainWindow = () => {
         },
     });
 
-    MAIN_WINDOW.webContents.openDevTools();
-    MAIN_WINDOW.setBounds({x: 640, y: 1600, width: 1270, height: 1080});
+    // MAIN_WINDOW.webContents.openDevTools();
+    MAIN_WINDOW.setBounds({x: 2560 + 960 - 400, y: 1440 + 540 - 300, width: 800, height: 600});
 
     return MAIN_WINDOW;
 };
 
 
-function AuthWindow(page_url, main_window) {
+export function AuthWindow(page_url: string, main_window: BrowserWindow) {
     const AUTH_WINDOW = new BrowserWindow({
         width: 800,
         height: 600,
         parent: main_window,
-        icon: "./public/img/favicon.ico"
+        icon: "../public/img/favicon.ico"
     });
 
     AUTH_WINDOW.center();
@@ -42,6 +42,3 @@ function AuthWindow(page_url, main_window) {
 
     return AUTH_WINDOW;
 };
-
-
-module.exports = {MainWindow, AuthWindow};

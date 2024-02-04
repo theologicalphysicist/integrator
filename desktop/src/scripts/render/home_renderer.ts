@@ -1,40 +1,43 @@
-import {IntroductionParagraph, IntegrationSection} from "../components/home.js";
-import {Title, NAVIGATION_BAR, Navbar, ErrorModal} from "../components/global.js";
+import {IntroductionParagraph, SourcePanel} from "../components/home.js";
+import {Title, Navbar, ErrorModal, SecondHeader} from "../components/global.js";
 
 
 //_ WINDOW CONTAINERS
-const TITLE_AREA = document.getElementById("main_title");
-const INTRO_AREA = document.getElementById("intro_area");
-const PRODUCTIVITY_SELECTION_TITLE = document.getElementById("productivity_selection_title");
-const PRODUCTIVITY_SELECTION_AREA = document.getElementById("productivity_selection_area");
-const MEDIA_SELECTION_TITLE = document.getElementById("media_selection_title");
-const MEDIA_SELECTION_AREA = document.getElementById("media_selection_area");
-const EXIT_BUTTON = document.getElementById("exit_app");
-const MODAL_CONTAINER = document.getElementById("modal_container");
-const MAIN = document.getElementById("main");
+const TITLE_AREA: HTMLElement | null = document.getElementById("main_title");
+const INTRO_AREA: HTMLElement | null = document.getElementById("intro_area");
+const PRODUCTIVITY_SELECTION_TITLE: HTMLElement | null = document.getElementById("productivity_selection_title");
+const PRODUCTIVITY_SELECTION_AREA: HTMLElement | null = document.getElementById("productivity_selection_area");
+const MEDIA_SELECTION_TITLE: HTMLElement | null = document.getElementById("media_selection_title");
+const MEDIA_SELECTION_AREA: HTMLElement | null = document.getElementById("media_selection_area");
+const EXIT_BUTTON: HTMLElement | null = document.getElementById("exit_app");
+const MODAL_CONTAINER: HTMLElement | null = document.getElementById("modal_container");
+const MAIN: HTMLElement | null = document.getElementById("main");
+const NAVIGATION_BAR: HTMLElement | null = document.getElementById("navigation_area");
 
 
 //_ EVENT HANDLING
-if (window.renderer) { //*  incase of web front-end
+//@ts-ignore
+if (renderer) { //* if electron desktop instead of web frontend
 
-    renderer.LeaveApp((event) => {
+    //@ts-ignore
+    renderer.LeaveApp((event: any) => {
 
         localStorage.clear();
 
     });
 
+    //@ts-ignore
+    renderer.fetchError(async (event: any, error_res: any) => {
 
-    renderer.fetchError(async (event, error_res) => {
-
-        if (MODAL_CONTAINER.hidden) {
+        if (MODAL_CONTAINER?.hidden) {
 
             MODAL_CONTAINER.innerHTML += ErrorModal(error_res);
 
             MODAL_CONTAINER.hidden = false;
             MODAL_CONTAINER.style.display = "flex";
 
-            const CLOSE_ERROR_MODAL = document.getElementById("close_modal");
-            CLOSE_ERROR_MODAL.onclick = (event) => {
+            const CLOSE_ERROR_MODAL: HTMLElement | null = document.getElementById("close_modal");
+            CLOSE_ERROR_MODAL!.onclick = (event: any) => {
 
                 MODAL_CONTAINER.hidden = true;
                 MODAL_CONTAINER.innerHTML = "";
@@ -46,7 +49,8 @@ if (window.renderer) { //*  incase of web front-end
 
     });
 
-    renderer.init((event, res) => {
+    //@ts-ignore
+    renderer.init((event: any, res: any) => {
 
         localStorage.clear();
         localStorage.setItem("sessionID", res.id);
@@ -57,9 +61,10 @@ if (window.renderer) { //*  incase of web front-end
 };
 
 
-function testModal(error_res) {
+function testModal(error_res: any) {
 
-    if (MODAL_CONTAINER.hidden) {
+    if (MODAL_CONTAINER?.hidden) {
+        const CLOSE_ERROR_MODAL: HTMLElement | null = document.getElementById("close_modal");
 
         MODAL_CONTAINER.innerHTML += ErrorModal(error_res || {
             code: 500,
@@ -69,11 +74,10 @@ function testModal(error_res) {
 
         MODAL_CONTAINER.hidden = false;
 
-        const CLOSE_ERROR_MODAL = document.getElementById("close_modal");
-        CLOSE_ERROR_MODAL.onclick = (event) => {
+        CLOSE_ERROR_MODAL!.onclick = (event: any) => {
 
             MODAL_CONTAINER.hidden = true;
-            MODAL_CONTAINER.innerHTML = null;
+            MODAL_CONTAINER.innerHTML = "";
 
         };
         
@@ -84,16 +88,20 @@ function testModal(error_res) {
 
 //_ PAGE RENDERING
 const DataFetchFunctions = () => {
-    const NOTION_FETCH_COMMAND = document.getElementById("notion_fetch");
-    NOTION_FETCH_COMMAND.onclick = async (event) => {
+    const NOTION_FETCH_COMMAND: HTMLElement | null = document.getElementById("notion_fetch");
+    const SPOTIFY_FETCH_COMMAND: HTMLElement | null  = document.getElementById("spotify_fetch");
+    const GITHUB_FETCH_COMMAND: HTMLElement | null  = document.getElementById("github_fetch");
+
+    NOTION_FETCH_COMMAND!.onclick = async (event) => {
 
         if (localStorage.getItem("recentFetch") != "NOTION") {
+            //@ts-ignore
             const NOTION_DATABASE_RES = await renderer.fetch(
                 `/notion`,
                 null,
                 {
                     sessionID: localStorage.getItem("sessionID"),
-                    cookies: JSON.parse(localStorage.getItem("cookies")),
+                    cookies: JSON.parse(`${localStorage.getItem("cookies")}`),
                 },
                 "GET"
             );
@@ -106,21 +114,25 @@ const DataFetchFunctions = () => {
 
     };
 
-    const SPOTIFY_FETCH_COMMAND = document.getElementById("spotify_fetch");
-    SPOTIFY_FETCH_COMMAND.onclick = async (event) => {
+    SPOTIFY_FETCH_COMMAND!.onclick = async (event) => {
 
         if (localStorage.getItem("recentFetch") != "SPOTIFY") {
+            //@ts-ignore
             const AUTH_URL = await renderer.fetch(
-                `/spotify/authorization`,
+                `/spotify/auth/spotify`,
                 null,
                 {
                     sessionID: localStorage.getItem("sessionID"),
-                    cookies: JSON.parse(localStorage.getItem("cookies")),
+                    cookies: JSON.parse(`${localStorage.getItem("cookies")}`),
                 },
                 "GET"
             );
 
-            localStorage.setItem("recentFetch", "SPOTIFY");
+            //@ts-ignore
+            renderer.log({AUTH_URL})
+
+            // localStorage.setItem("recentFetch", "SPOTIFY");
+            //@ts-ignore
             renderer.SpotifyAuth(AUTH_URL.data, localStorage.getItem("sessionID"));
 
         } else {
@@ -129,22 +141,22 @@ const DataFetchFunctions = () => {
 
     };
 
-    const GITHUB_FETCH_COMMAND = document.getElementById("github_fetch");
-    GITHUB_FETCH_COMMAND.onclick = async (event) => {
+    GITHUB_FETCH_COMMAND!.onclick = async (event) => {
 
         if (localStorage.getItem("recentFetch") != "GITHUB") {
-
+            //@ts-ignore
             await renderer.fetch(
                 "/github/repositories",
                 null,
                 {
                     sessionID: localStorage.getItem("sessionID"),
-                    cookies: JSON.parse(localStorage.getItem("cookies")),
+                    cookies: JSON.parse(`${localStorage.getItem("cookies")}`),
+                    //@ts-ignore
                     username: renderer.GITHUB_USERNAME
                 },
                 "GET"
             )
-            .then((res) => {
+            .then((res: any) => {
                 localStorage.setItem("recentFetch", "GITHUB");
                 localStorage.setItem("GithubFetchData", JSON.stringify(res.data));
 
@@ -160,35 +172,34 @@ const DataFetchFunctions = () => {
 };
 
 
-const renderPage = async () => {
+function renderPage() {
     
     //_ GENERAL PAGE COMPONENTS
-    NAVIGATION_BAR.innerHTML += Navbar({
+    NAVIGATION_BAR!.innerHTML += Navbar({
         current: "Home",
         links: {
             Home: "../pages/index.html",
-            Data: "../pages/data.html",
-            Media: "../pages/media.html",
+            Integrations: "../pages/integration.html",
+            Data: "../pages/data.html"
         }
     });
 
-    TITLE_AREA.innerHTML = Title("Integrator");
-    INTRO_AREA.innerHTML = IntroductionParagraph();
+    TITLE_AREA!.innerHTML = Title("Integrator");
 
-    //_ INTEGRATIONS
-    PRODUCTIVITY_SELECTION_TITLE.innerHTML = `
-        <h2>Productivity Integrations</h2>
-    `;
-    PRODUCTIVITY_SELECTION_AREA.innerHTML = `
+    INTRO_AREA!.innerHTML = IntroductionParagraph();
+
+    //_ SOURCES
+    PRODUCTIVITY_SELECTION_TITLE!.innerHTML = SecondHeader("Productivity Sources");
+    PRODUCTIVITY_SELECTION_AREA!.innerHTML = `
         <div class="integration-row">
-            ${IntegrationSection(
+            ${SourcePanel(
                 {
                     sectionID: "notion_section",
                     appName: "Notion",
                     appImage: "notion-logo.png",
                     buttonID: "notion_fetch"
                 }
-            ) + IntegrationSection(
+            ) + SourcePanel(
                 {
                     sectionID: "pomodone_section",
                     appName: "Pomodone",
@@ -198,12 +209,12 @@ const renderPage = async () => {
             )}
         </div>
         <div class="integration-row">
-            ${IntegrationSection({
+            ${SourcePanel({
                 sectionID: "focus_section",
                 appName: "Focus Todo",
                 appImage: "focus-logo.jpeg",
                 buttonID: "focus_fetch"
-            }) + IntegrationSection({
+            }) + SourcePanel({
                 sectionID: "pomotodo_section",
                 appName: "Pomotodo",
                 appImage: "pomotodo-logo.jpeg",
@@ -211,12 +222,12 @@ const renderPage = async () => {
             })}
         </div>
         <div class="integration-row">
-            ${IntegrationSection({
+            ${SourcePanel({
                 sectionID: "todo_section",
                 appName: "Microsoft Todo",
                 appImage: "todo-logo.png",
                 buttonID: "todo_fetch"
-            }) + IntegrationSection({
+            }) + SourcePanel({
                 sectionID: "github_section",
                 appName: "Github",
                 appImage: "github-logo.png",
@@ -224,18 +235,16 @@ const renderPage = async () => {
             })}
         </div>
     `;
-    MEDIA_SELECTION_TITLE.innerHTML = `
-        <h2>Media Integrations</h2>
-    `;
-    MEDIA_SELECTION_AREA.innerHTML = `
+    MEDIA_SELECTION_TITLE!.innerHTML = SecondHeader("Media Sources");
+    MEDIA_SELECTION_AREA!.innerHTML = `
         <div class="integration-row">
-            ${IntegrationSection({
+            ${SourcePanel({
                 sectionID: "spotify_section",
                 appName: "Spotify",
                 appImage: "spotify-logo.png",
                 buttonID: "spotify_fetch"
             })}
-            ${IntegrationSection({
+            ${SourcePanel({
                 sectionID: "itunes_section",
                 appName: "iTunes",
                 appImage: "itunes-logo.png",
@@ -244,14 +253,19 @@ const renderPage = async () => {
         </div>
     `;
 
-    if (window.renderer) { //* for web front-end
-        DataFetchFunctions();
+    //@ts-ignore
+
+    if (window.renderer) { 
+
+        DataFetchFunctions(); //* for web front-end
+
     } else {
         //* for error testing purposes
         const FETCH_COMMANDS = document.querySelectorAll("button[id*='fetch']"); //* all buttons for querying backend for resources
-        FETCH_COMMANDS.forEach((f_c) => {
-            f_c.onclick = (event) => {
-                testModal();
+        FETCH_COMMANDS.forEach((f_c: Element) => {
+            //@ts-ignore
+            f_c.onclick = (event: any) => {
+                testModal("");
             };
         });
     };
@@ -259,4 +273,4 @@ const renderPage = async () => {
 };
 
 
-await renderPage();
+renderPage();

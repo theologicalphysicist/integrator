@@ -8,15 +8,9 @@ contextBridge.exposeInMainWorld("renderer", {
     EXPRESS_BACKEND_API_URL: process.env.EXPRESS_BACKEND_API_URL,
     LeaveApp: (callback) => ipcRenderer.on("LeaveApp", callback),
     setCookies: (cookies) => ipcRenderer.send("setCookies", cookies),
-    fetch: async (url, request_data, sessionID, cookies, verb) => {
-        return ipcRenderer.invoke("fetch", url, request_data, sessionID, cookies, verb)
-            .then((result) => 
-                {
-                    return result;
-                }
-            )
-    },
+    fetch: (url, request_data, sessionID, cookies, verb) => ipcRenderer.invoke("fetch", url, request_data, sessionID, cookies, verb),
     GITHUB_USERNAME: process.env.GITHUB_USERNAME,
+    log: (log_data) => ipcRenderer.send("log", log_data)
 });
 
 //! ipcRenderer.send => called by renderer, defined & ran in main.

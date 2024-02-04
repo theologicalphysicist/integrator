@@ -1,4 +1,4 @@
-export const LANGUAGE_COLOURS = {
+{
     "JavaScript": "#F1E05A",
     "SCSS": "#C6538C",
     "HTML": "#E34C26",
@@ -17,4 +17,4 @@ export const LANGUAGE_COLOURS = {
     "Batchfile": "#C1F12E",
     "Dockerfile": "#384D54",
     "EJS": "#EDEDED"
-};
+}

@@ -34,12 +34,12 @@ const IntroductionParagraph = () => {
     `);
 }
 
-const IntegrationSection = (props) => {
+const SourcePanel = (props) => {
     return (`
         <div id="${props.sectionID}" class="integration-section">
             <h2>${props.appName} Integrations</h2>
             <div class="image-container">
-                <img src="../public/img/${props.appImage}" alt="${props.appName} logo">
+                <img src="../../public/img/${props.appImage}" alt="${props.appName} logo">
             </div>
             <p>Fetch & view data from ${props.appName}</p>
             <div class="button-container">
@@ -49,4 +49,4 @@ const IntegrationSection = (props) => {
     `);
 }
 
-export {IntroductionParagraph, IntegrationSection};
+export {IntroductionParagraph, SourcePanel};

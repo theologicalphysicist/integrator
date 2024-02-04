@@ -1,22 +1,20 @@
-const NAVIGATION_BAR = document.getElementById("navigation_area");
-
-
-const Title = (text) => {    
+export const Title = (text: string) => {
+    
     return (`
        <h1>${text}</h1>
     `);
 };
 
 
-const Navbar = (props) => {
+export const Navbar = (props: any) => {
     let LINKS = "";
-    ["Home", "Data Tools", "Media Tools"].map((l) => {
-    return (`
-        <li>
-            <a class="${props.current === l ? "current" : ""}" href="${props.links[l.split(" ")[0]]}">${l}</a>
-        </li>
-    `)
-    }).map((al) => LINKS += al);
+    Object.keys(props.links).forEach((l: string) => {
+        LINKS += `
+            <li>
+                <a class="${props.current === l ? "current" : ""}" href="${props.links[l]}">${l}</a>
+            </li>
+        `;
+    });
     
     return (`
         <ul>
@@ -26,7 +24,7 @@ const Navbar = (props) => {
 };
 
 
-const LoadingLogo = () => {
+export const LoadingLogo = () => {
 
     return `
         <div id="logo_container">
@@ -34,11 +32,12 @@ const LoadingLogo = () => {
             <div class="logo_circle" id="circle3"></div>
             <div class="logo_circle" id="circle2"></div>
         </div>
+        <p>loading...</p>
     `;
 };
 
 
-const ErrorModal = (error_res) => {
+export const ErrorModal = (error_res: any) => {
 
     return `
         <div class="modal-popup" id="error_modal">
@@ -50,4 +49,9 @@ const ErrorModal = (error_res) => {
 };
 
 
-export {NAVIGATION_BAR, Navbar, Title, ErrorModal, LoadingLogo}
+export const SecondHeader = (text: string) => {
+
+    return `
+        <h2>${text}</h2>
+    `;
+};

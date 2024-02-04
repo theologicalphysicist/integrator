@@ -1,9 +1,12 @@
 @use "utils";
+@use "global";
 
+//_ ANIMATIONS
 @keyframes logoLoading {
     0% {
         top: 13px;
         left: 35px;
+        background-color: utils.$main-colour;
     }
     33% {
         top: 70px;
@@ -22,12 +25,12 @@
     }
 }
 
+
 div#logo_container {
     width: 100px;
     height: 100px;
     display: flex;
     position: absolute;
-    top: 25%;
     left: calc(50% - 50px);
     div.logo_circle {
         width: 30px;

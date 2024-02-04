@@ -3,14 +3,15 @@
 @use "../title";
 @use "../loading";
 
+
 div#load_data {
     width: 80%;
     margin: auto;
-    padding: 16px;
+    padding: 1rem;
     // border: utils.$debug-container;
     display: block;
     justify-content: space-around;
-    //_ NOTION, MICROSOTF, GITHUB
+    //_ NOTION, MICROSOFT, GITHUB
     div.productivity-section {
         display: block;
         width: 40%;

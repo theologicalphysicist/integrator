@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta 
+            http-equiv="content-security-policy" 
+            content="
+                default-src 'self'; 
+                script-src 'self' 'unsafe-inline'; 
+                connect-src http://localhost:3000 https://accounts.spotify.com ws:;
+                font-src 'self' data:
+            "
+        >
+        <title>Integrator - Home</title>
+        <script type="module" src="../scripts/render/integration_renderer.js"></script>
+        <link type="text/css" rel="stylesheet" href="../styles/integration.css">
+    </head>
+    <body>
+        <div id="main">
+            <nav id="navigation_area">
+                <img src="../../public/img/favicon-32x32.png" alt="therefore logo">
+            </nav>
+            <section id="main_area">
+                
+            </section>
+        </div>
+    </body>
+
+</html>
