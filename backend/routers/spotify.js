@@ -2,8 +2,6 @@ import Express, { Router } from "express";
 
 import queryString from "query-string";
 import EventEmitter from "node:events";
-import grant from "grant";
-import jsonfile from "jsonfile";
 
 //_ LOCAL
 import { getAuthCode, refreshToken, getPlaylists, createPlaylist, querySong } from "../apis/media/spotify.js";
@@ -19,12 +17,9 @@ import { Verbal } from "../utils/logger.js";
 const SPOTIFY_ROUTER = Router(); 
 const SPOTIFY_TOKENS_AVAILABLE = new EventEmitter(); //* for long-polling to handle spotify tokens
 const SPOTIFY_LOGGER = new Verbal("spotify");
-const OAUTH_CONFIG = await jsonfile.readFile("oauth.json");
 // const GRANT_PROXY = grant.default(OAUTH_CONFIG);
 
 //_ MIDDLEWARE
-SPOTIFY_ROUTER.use("/auth", grant.express(OAUTH_CONFIG));
-
 
 SPOTIFY_ROUTER.use((req, res, next) => {
     SPOTIFY_LOGGER.log({
@@ -34,32 +29,32 @@ SPOTIFY_ROUTER.use((req, res, next) => {
 
     next();
 
-    // if (!["/callback", "/spotify.html"].includes(req.path)) {
+    if (!["/callback", "/spotify.html"].includes(req.path)) {
         
-    //     if (!req.query.sessionID) next({ //* invalid request, no session id
-    //         ...ERROR_MESSAGE(400),
-    //         details: "invalid session ID provided.",
-    //     });
+        if (!req.query.sessionID) next({ //* invalid request, no session id
+            ...ERROR_MESSAGE(400),
+            details: "invalid session ID provided.",
+        });
 
-    //     req.sessionStore.get(req.query.sessionID, (err, sess) => { 
+        req.sessionStore.get(req.query.sessionID, (err, sess) => { 
 
-    //         if (!sess) next({ //* invalid request, bad session id
-    //             ...ERROR_MESSAGE(400),
-    //             details: "invalid session ID provided.",
-    //         });
+            if (!sess) next({ //* invalid request, bad session id
+                ...ERROR_MESSAGE(400),
+                details: "invalid session ID provided.",
+            });
 
-    //         req.currentSession = sess;
-    //         req.currentCookies = {
-    //             cookie: {...sess.cookie},
-    //             id: sess.cookieID ?? null
-    //         };
+            req.currentSession = sess;
+            req.currentCookies = {
+                cookie: {...sess.cookie},
+                id: sess.cookieID ?? null
+            };
 
-    //         next();
-    //     });
+            next();
+        });
 
-    // } else {
-    //     next();
-    // };
+    } else {
+        next();
+    };
 
 });
 
@@ -130,15 +125,15 @@ SPOTIFY_ROUTER.get("/", async (req, res) => {
 
 SPOTIFY_ROUTER.get("/authorization", async (req, res) => {
 
-    // res.send(`${SPOTIFY_ACCOUNTS_URL}/authorize?${queryString.stringify({
-    //         response_type: "code",
-    //         client_id: process.env.SPOTIFY_CLIENT_ID,
-    //         redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
-    //         scope: process.env.SPOTIFY_SCOPES,
-    //         show_dialog: true,
-    //         state: req.query.sessionID
-    //     })}`
-    // );
+    res.send(`${SPOTIFY_ACCOUNTS_URL}/authorize?${queryString.stringify({
+            response_type: "code",
+            client_id: process.env.SPOTIFY_CLIENT_ID,
+            redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+            scope: process.env.SPOTIFY_SCOPES,
+            show_dialog: true,
+            state: req.query.sessionID
+        })}`
+    );
     //! NOTE THAT THIS METHOD MAY CAUSE ISSUES IF ACCESSING FROM A SITE INSTEAD OF DESKTOP
 
 });
@@ -157,52 +152,52 @@ SPOTIFY_ROUTER.get("/callback", async (req, res, next) => {
         }
     });
 
-    // if (req.query.code && req.query.state) {
+    if (req.query.code && req.query.state) {
 
-    //     await getAuthCode(
-    //         req.query.code, 
-    //         process.env.SPOTIFY_REDIRECT_URI,
-    //         SPOTIFY_ACCOUNTS_INSTANCE(process.env.SPOTIFY_CLIENT_ID, process.env.SPOTIFY_CLIENT_SECRET),
-    //         SPOTIFY_LOGGER
-    //     )
-    //     .then((token_res) => {
+        await getAuthCode(
+            req.query.code, 
+            process.env.SPOTIFY_REDIRECT_URI,
+            SPOTIFY_ACCOUNTS_INSTANCE(process.env.SPOTIFY_CLIENT_ID, process.env.SPOTIFY_CLIENT_SECRET),
+            SPOTIFY_LOGGER
+        )
+        .then((token_res) => {
 
-    //         if (token_res.error.present) throw new Error(token_res.error.details);
+            if (token_res.error.present) throw new Error(token_res.error.details);
 
-    //         SPOTIFY_LOGGER.log({token_res});
+            SPOTIFY_LOGGER.log({token_res});
 
-    //         req.sessionStore.get(req.query.state, (err, sess) => {
+            req.sessionStore.get(req.query.state, (err, sess) => {
                 
-    //             if (err) throw new Error(`no session found. invalid authentication. ${err}`);
+                if (err) throw new Error(`no session found. invalid authentication. ${err}`);
 
-    //             req.sessionStore.set(req.query.state, {
-    //                 ...sess,
-    //                 spotify: {
-    //                     accessToken: token_res.data.access_token,
-    //                     scope: token_res.data.scope,
-    //                     expiryTime: (token_res.data.expires_in * 1000) + Date.now(),
-    //                     refreshToken: token_res.data.refresh_token,
-    //                     tokenType: token_res.data.token_type
-    //                 }
-    //             }, (err) => {
-    //                 if (err) throw new Error("session could not be set");
-    //             });
+                req.sessionStore.set(req.query.state, {
+                    ...sess,
+                    spotify: {
+                        accessToken: token_res.data.access_token,
+                        scope: token_res.data.scope,
+                        expiryTime: (token_res.data.expires_in * 1000) + Date.now(),
+                        refreshToken: token_res.data.refresh_token,
+                        tokenType: token_res.data.token_type
+                    }
+                }, (err) => {
+                    if (err) throw new Error("session could not be set");
+                });
 
-    //             SPOTIFY_TOKENS_AVAILABLE.emit("tokens-available", req.query.state);
-    //         });
+                SPOTIFY_TOKENS_AVAILABLE.emit("tokens-available", req.query.state);
+            });
 
-    //         res.redirect("spotify.html");
-    //     })
-    //     .catch((err) => {
-    //         next({
-    //             ...ERROR_MESSAGE(500),
-    //             details: err
-    //         });
-    //     });
+            res.redirect("spotify.html");
+        })
+        .catch((err) => {
+            next({
+                ...ERROR_MESSAGE(500),
+                details: err
+            });
+        });
 
-    // } else {
-    //     next(ERROR_MESSAGE(500));
-    // };
+    } else {
+        next(ERROR_MESSAGE(500));
+    };
 
 });
 
