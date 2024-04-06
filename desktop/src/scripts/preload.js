@@ -10,7 +10,7 @@ contextBridge.exposeInMainWorld("renderer", {
     setCookies: (cookies) => ipcRenderer.send("setCookies", cookies),
     fetch: (url, request_data, sessionID, cookies, verb) => ipcRenderer.invoke("fetch", url, request_data, sessionID, cookies, verb),
     GITHUB_USERNAME: process.env.GITHUB_USERNAME,
-    log: (log_data) => ipcRenderer.send("log", log_data)
+    log: (log_data, level) => ipcRenderer.send("log", log_data, level)
 });
 
 //! ipcRenderer.send => called by renderer, defined & ran in main.

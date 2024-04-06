@@ -51,9 +51,13 @@ if (renderer) { //* if electron desktop instead of web frontend
 
     //@ts-ignore
     renderer.init((event: any, res: any) => {
+        const PREVIOUS_SESSION_ID: string | null = localStorage.getItem("sessionID"); 
+        //@ts-ignore
+        renderer.log({res}, "DEBUG");
+        console.log({res});
 
         localStorage.clear();
-        localStorage.setItem("sessionID", res.id);
+        localStorage.setItem("sessionID", PREVIOUS_SESSION_ID ?? res.id);
         localStorage.setItem("cookies", JSON.stringify(res.cookies));
 
     });
@@ -119,7 +123,7 @@ const DataFetchFunctions = () => {
         if (localStorage.getItem("recentFetch") != "SPOTIFY") {
             //@ts-ignore
             const AUTH_URL = await renderer.fetch(
-                `/spotify/auth/spotify`,
+                `/spotify/authorization`,
                 null,
                 {
                     sessionID: localStorage.getItem("sessionID"),
@@ -129,11 +133,17 @@ const DataFetchFunctions = () => {
             );
 
             //@ts-ignore
-            renderer.log({AUTH_URL})
+            renderer.log(AUTH_URL.data, "INFO");
+            console.log(JSON.stringify({data: AUTH_URL.data}));
 
-            // localStorage.setItem("recentFetch", "SPOTIFY");
-            //@ts-ignore
-            renderer.SpotifyAuth(AUTH_URL.data, localStorage.getItem("sessionID"));
+            localStorage.setItem("recentFetch", "SPOTIFY");
+            if (AUTH_URL.data.authURL) {
+                //@ts-ignore
+                renderer.SpotifyAuth(AUTH_URL.data.authURL, localStorage.getItem("sessionID"));
+            } else if (AUTH_URL.data.tokensValid) {
+                location.href = "../pages/data.html";
+            }
+
 
         } else {
             location.href = "../pages/data.html";
@@ -155,8 +165,7 @@ const DataFetchFunctions = () => {
                     username: renderer.GITHUB_USERNAME
                 },
                 "GET"
-            )
-            .then((res: any) => {
+            ).then((res: any) => {
                 localStorage.setItem("recentFetch", "GITHUB");
                 localStorage.setItem("GithubFetchData", JSON.stringify(res.data));
 
@@ -170,6 +179,20 @@ const DataFetchFunctions = () => {
     };
 
 };
+
+
+async function initialize() {
+    //@ts-ignore
+    const INIT_RES = await renderer.fetch(
+        "/init",
+        null,
+        {
+            sessionID: localStorage.getItem("sessionID"),
+            cookies: JSON.parse(`${localStorage.getItem("cookies")}`),
+        },
+        "GET"
+    )
+}
 
 
 function renderPage() {

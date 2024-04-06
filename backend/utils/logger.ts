@@ -10,6 +10,7 @@ export class Verbal {
     name: string;
     print: boolean;
     framework?: Framework;
+    readonly printable_types: Array<string> = ["string", "number", "undefined", "null", "bigint", "boolean"];
     readonly SERVER_COLORS: Record<string, string> = {
         red: "#E88388",
         orange: "#EB8B59",
@@ -28,6 +29,13 @@ export class Verbal {
         ERROR: 1,
         CRITICAL: 0
     };
+    readonly LOG_LEVELS: any = {
+        DEBUG: "white",
+        INFO: "cyan",
+        WARN: "orange",
+        WARNING: "orange",
+        ERROR: "red"
+    }
 
     //_ CONSTRUCTORS
     constructor(name=process.env.npm_package_name ?? "integrator-backend", print: boolean = true, framework?: Framework) {
@@ -36,49 +44,50 @@ export class Verbal {
         this.framework = framework;
     };
 
+
     //_ GENERAL LOGGING FUNCTIONS
-    debug(data: LogData): string | void {
-        const OUT_DATA = ["string", "number", "undefined"].includes(typeof data) || data == null  ? data : `\n${JSON.stringify(data, null, 2)}`;
+    debug(data: LogData) {
+        const OUT = this.printable_types.includes(typeof data) ? data : JSON.stringify(data, null, 4);
 
-        if (!this.print) return `\n${chalk.bgHex(this.SERVER_COLORS.white).hex("#000").bold(" DEBUG ")} - ${chalk.hex(this.SERVER_COLORS.white).underline(this.name + ":")} ${OUT_DATA}\n` 
+        if (!this.print) return `\n${chalk.bgHex(this.SERVER_COLORS.white).hex("#000").bold(" DEBUG ")} - ${chalk.hex(this.SERVER_COLORS.white).underline(this.name)}: ${OUT}\n` 
 
-        return console.log(`\n${chalk.bgHex(this.SERVER_COLORS.white).hex("#000").bold(" DEBUG ")} - ${chalk.hex(this.SERVER_COLORS.white).underline(this.name + ":")} ${OUT_DATA}\n`);
+        return console.log(`\n${chalk.bgHex(this.SERVER_COLORS.white).hex("#000").bold(" DEBUG ")} - ${chalk.hex(this.SERVER_COLORS.white).underline(this.name)}: ${OUT}\n`);
     };
 
 
-    info(data: LogData): string | void {
-        const OUT_DATA = ["string", "number", "undefined"].includes(typeof data) || data == null  ? data : `\n${JSON.stringify(data, null, 2)}`;
+    info(data: LogData) {
+        const OUT = this.printable_types.includes(typeof data) ? data : JSON.stringify(data, null, 4);
 
-        if (!this.print) return `\n${chalk.bgHex(this.SERVER_COLORS.cyan).hex("#000").bold(" INFO ")} - ${chalk.hex(this.SERVER_COLORS.cyan).underline(this.name + ":")} ${OUT_DATA}\n` 
+        if (!this.print) return `\n${chalk.bgHex(this.SERVER_COLORS.cyan).hex("#000").bold(" INFO ")} - ${chalk.hex(this.SERVER_COLORS.cyan).underline(this.name)}: ${OUT}\n` 
 
-        return console.log(`\n${chalk.bgHex(this.SERVER_COLORS.cyan).hex("#000").bold(" INFO ")} - ${chalk.hex(this.SERVER_COLORS.cyan).underline(this.name + ":")} ${OUT_DATA}\n`);
+        return console.log(`\n${chalk.bgHex(this.SERVER_COLORS.cyan).hex("#000").bold(" INFO ")} - ${chalk.hex(this.SERVER_COLORS.cyan).underline(this.name)}: ${OUT}\n`);
     };
 
 
-    warn(data: LogData): string | void {
-        const OUT_DATA = ["string", "number", "undefined"].includes(typeof data) || data == null  ? data : `\n${JSON.stringify(data, null, 2)}`;
+    warn(data: LogData) {
+        const OUT = this.printable_types.includes(typeof data) ? data : JSON.stringify(data, null, 4);
 
-        if (!this.print) return `\n${chalk.bgHex(this.SERVER_COLORS.orange).hex("#000").bold(" WARNING ")} - ${chalk.hex(this.SERVER_COLORS.orange).underline(this.name + ":")} ${OUT_DATA}\n` 
+        if (!this.print) return `\n${chalk.bgHex(this.SERVER_COLORS.orange).hex("#000").bold(" WARNING ")} - ${chalk.hex(this.SERVER_COLORS.orange).underline(this.name)}: ${OUT}\n` 
 
-        return console.log(`\n${chalk.bgHex(this.SERVER_COLORS.orange).hex("#000").bold(" WARNING ")} - ${chalk.hex(this.SERVER_COLORS.orange).underline(this.name + ":")} ${OUT_DATA}\n`);
+        return console.log(`\n${chalk.bgHex(this.SERVER_COLORS.orange).hex("#000").bold(" WARNING ")} - ${chalk.hex(this.SERVER_COLORS.orange).underline(this.name)}: ${OUT}\n`);
     };
 
 
-    error(data: LogData): string | void {
-        const OUT_DATA = ["string", "number", "undefined"].includes(typeof data) || data == null ? data : `\n${JSON.stringify(data, null, 2)}`;
+    error(data: LogData) {
+        const OUT = this.printable_types.includes(typeof data) ? data : JSON.stringify(data, null, 4);
 
-        if (!this.print) return `\n${chalk.bgHex(this.SERVER_COLORS.red).hex("#000").bold(" ERROR ")} - ${chalk.hex(this.SERVER_COLORS.red).underline(this.name + ":")} ${OUT_DATA}\n` 
+        if (!this.print) return `\n${chalk.bgHex(this.SERVER_COLORS.red).hex("#000").bold(" ERROR ")} - ${chalk.hex(this.SERVER_COLORS.red).underline(this.name)}: ${OUT}\n` 
 
-        return console.log(`\n${chalk.bgHex(this.SERVER_COLORS.red).hex("#000").bold(" ERROR ")} - ${chalk.hex(this.SERVER_COLORS.red).underline(this.name + ":")} ${OUT_DATA}\n`);
+        return console.log(`\n${chalk.bgHex(this.SERVER_COLORS.red).hex("#000").bold(" ERROR ")} - ${chalk.hex(this.SERVER_COLORS.red).underline(this.name)}: ${OUT}\n`);
     };
 
+    log(data: LogData, level?: string): string | void {
+        const OUT = this.printable_types.includes(typeof data) || data == null ? data : JSON.stringify(data, null, 4);
+        const LOG_COLOR: string = level ? this.SERVER_COLORS[this.LOG_LEVELS[level]] : this.SERVER_COLORS.purple;
 
-    log(data: LogData): string | void {
-        const OUT_DATA = ["string", "number", "undefined"].includes(typeof data) || data == null ? data : `\n${JSON.stringify(data, null, 2)}`;
+        if (!this.print) return `\n${chalk.bgHex(this.SERVER_COLORS.purple).hex("#000").bold(" LOG ")} - ${chalk.hex(this.SERVER_COLORS.purple).underline(this.name)}: ${OUT}\n` 
 
-        if (!this.print) return `\n${chalk.bgHex(this.SERVER_COLORS.purple).hex("#000").bold(" LOG ")} - ${chalk.hex(this.SERVER_COLORS.purple).underline(this.name + ":")} ${OUT_DATA}\n` 
-
-        return console.log(`\n${chalk.bgHex(this.SERVER_COLORS.purple).hex("#000").bold(" LOG ")} - ${chalk.hex(this.SERVER_COLORS.purple).underline(this.name + ":")} ${OUT_DATA}\n`);
+        return console.log(`\n${chalk.bgHex(LOG_COLOR).hex("#000").bold(` LOG: ${level} `)} - ${chalk.hex(LOG_COLOR).underline(this.name)}: ${OUT}\n`);
     };
 
     //_ BACKEND LOGGING FUNCTIONS

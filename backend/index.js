@@ -78,38 +78,90 @@ app.get("/", (req, res) => {
 
 app.get("/init", async (req, res, next) => {
     const COOKIE_ID = generateRandomString(7);
-    
-    req.session.cookieID = COOKIE_ID;
-    req.session.save((err) => {
-        if (err) next({
-            ...ERROR_MESSAGE(500),
-            details: err
-        });
-    });
+    INDEX_LOGGER.debug({query: req.query});
 
-    res
-        .cookie("test", JSON.stringify({
-                ...req.session.cookie,
-                cookieID: COOKIE_ID
-            })
-        )
-        .json({
-            result: true,
-            message: "SESSION INITIALISED",
-            id: req.session.id,
-            cookies: {
-                ...req.session.cookie,
-                cookieID: COOKIE_ID
+    if (req.query.sessionID) {
+
+        req.sessionStore.get(req.query.sessionID, (err, session) => {
+            INDEX_LOGGER.debug({"GET ERROR": err, "BOOL CHECK": Boolean(err)});
+            INDEX_LOGGER.debug({session});
+
+            if (err) {
+                INDEX_LOGGER.warn("error getting session with given session ID. creating new session");
+
+                req.session.save((err) => {
+                    INDEX_LOGGER.debug({"NEW SESSION ERROR": err});
+
+                    if (err) {
+
+                        next({...ERROR_MESSAGE(500), details: err});
+                    }
+                });
+
+                res
+                    .cookie("test", JSON.stringify({
+                            ...req.session.cookie,
+                            cookieID: COOKIE_ID
+                        })
+                    )
+                    .json({
+                        result: true,
+                        message: "SESSION INITIALISED",
+                        id: req.session.id,
+                        cookies: {
+                            ...req.session.cookie,
+                            cookieID: COOKIE_ID
+                        }
+                    });
+
+            } else {
+
+                res.send({
+                    result: true,
+                    message: "EXISTING SESSION LOADED",
+                    id: req.query.sessionID,
+                    cookies: session.cookie ?? req.session.cookie,
+                });            
             }
+
         });
+
+    } else {
+
+        req.session.cookieID = COOKIE_ID;
+        req.session.save((err) => {
+            if (err) next({
+                ...ERROR_MESSAGE(500),
+                details: err
+            });
+        });
+
+        res
+            .cookie("test", JSON.stringify({
+                    ...req.session.cookie,
+                    cookieID: COOKIE_ID
+                })
+            )
+            .json({
+                result: true,
+                message: "SESSION INITIALISED",
+                id: req.session.id,
+                cookies: {
+                    ...req.session.cookie,
+                    cookieID: COOKIE_ID
+                }
+            });
+    }
+    
 });
 
 
 app.get("/exit", async (req, res) => {
-    console.log(req.session.id);
+    INDEX_LOGGER.info(req.session.id);
+    
     req.sessionStore.destroy(req.query.sessionID, (err) => {
         if (err) {
-            console.log(`ERROR: ${err}`);
+            INDEX_LOGGER.error(`ERROR: ${err}`);
             res.send("ERROR");
         } else {
             res.send("SUCCESS");
@@ -120,9 +172,9 @@ app.get("/exit", async (req, res) => {
 
 
 app.get("/cookie_test", async (req, res) => {
-    console.log(req.headers.cookie);
-    console.log(req.cookies);
-    console.log(req.session);
+    INDEX_LOGGER.log(req.headers.cookie);
+    INDEX_LOGGER.log(req.cookies);
+    INDEX_LOGGER.log(req.session);
     res.send({result: true});
 });
 
@@ -206,7 +258,7 @@ app.use("/integrations", INTEGRATIONS_ROUTER);
 app.use((err, req, res, next) => {
     INDEX_LOGGER.error({err});
 
-    res.status(err.statusCode || 500).json({error: err});
+    res.status(err.statusCode || err.code || 500).json({error: err});
 });
 
 //_ SERVER
