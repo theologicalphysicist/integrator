@@ -71,7 +71,7 @@ function formatError(event, err) {
         };
     }
 
-    console.log(response.error);
+    // console.log(response.error);
 
     event.sender.send("fetchError", {
         ...response.error
