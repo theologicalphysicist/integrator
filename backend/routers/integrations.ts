@@ -18,32 +18,18 @@ const INTEGRATIONS_LOGGER: Verbal = new Verbal();
 //* "transfer" path. and a "create, list (?), get, update, delete paths"
 INTEGRATIONS_ROUTER.use(async (req: Request & Partial<IRequest>, res: Response, next: NextFunction) => {
 
-    if (!req.query.sessionID) {
-        next({ //* invalid request, no session id
-            ...ERROR_MESSAGE(400),
-            details: "invalid session ID provided.",
-        })
-    };
+    if (!req.query.sessionID) {next(ERROR_MESSAGE(400, "invalid session ID provided."))}; //* invalid request, no session id
 
     //@ts-ignore
     req.sessionStore.get(req.query.sessionID, (err: any, sess: any) => { 
 
-        if (!sess) next({ //* invalid request, bad session id
-            ...ERROR_MESSAGE(400),
-            details: "invalid session ID provided.",
-        });
+        if (!sess) next(ERROR_MESSAGE(400, "invalid session ID provided.")); //* invalid request, bad session id
 
         req.currentSession = sess;
 
         if (!["/read", "/list", "/delete"].includes(req.path)) { //* paths in list do not require source & destination
 
-            if (
-                !req.query.source || 
-                !req.query.destination
-            ) next({ //* invalid parameters 
-                ...ERROR_MESSAGE(400),
-                details: "invald request query parameters"
-            });
+            if (!req.query.source || !req.query.destination) next(ERROR_MESSAGE(400, "invald request query parameters")); //* invalid parameters 
 
             req.queryParameters = {
                 ...req.queryParameters,
@@ -67,12 +53,7 @@ INTEGRATIONS_ROUTER.use(async (req: Request & Partial<IRequest>, res: Response, 
 INTEGRATIONS_ROUTER.use("/transfer", async (req: Request & Partial<IRequest>, res: Response, next: NextFunction) => {
     let items;
 
-    if (!req.query.type || !req.query.items || !req.query.fullTransfer) {
-        next({
-            ...ERROR_MESSAGE(400),
-            details: "invald request query parameters"
-        });
-    }
+    if (!req.query.type || !req.query.items || !req.query.fullTransfer) next(ERROR_MESSAGE(400, "invald request query parameters")); 
 
     if (typeof req.query.items == "string") {
         items = [req.query.items];
@@ -98,7 +79,7 @@ INTEGRATIONS_ROUTER.use("/transfer", async (req: Request & Partial<IRequest>, re
 
 
 //_ ROUTES
-// INTEGRATIONS_ROUTER.post("/transfer", async (req: Request & Partial<IRequest>, res: Response, next: NextFunction) => {
+// INTEGRATIONS_ROUTER.post("/transfer/create", async (req: Request & Partial<IRequest>, res: Response, next: NextFunction) => {
 //     INTEGRATIONS_LOGGER.log(JSON.stringify(req.queryParameters?.integrations, null, 4));
 //     INTEGRATIONS_LOGGER.log(JSON.stringify({values: Object.values(TransferType)}, null, 4));
 

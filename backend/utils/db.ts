@@ -21,14 +21,12 @@ const SESSIONS_SCHEMA = (mongoose_conn: typeof mongoose): Schema => new mongoose
 
 const INTEGRATIONS_SCHEMA = (mongoose_conn: typeof mongoose): Schema => new mongoose_conn.Schema({
     _id: String,
-    type: String,
     lastSync: Number,
     source: String,
     destination: String,
     sessionID: String,
     data: {}
 });
-
 
 //_ MODELS
 export const SESSION = (mongoose_conn: typeof mongoose): Model<ISession> => mongoose_conn.model<ISession>(
@@ -40,11 +38,22 @@ export const SESSION = (mongoose_conn: typeof mongoose): Model<ISession> => mong
     }
 );
 
-export const INTEGRATION = (mongoose_conn: typeof mongoose): Model<IIntegration> => mongoose_conn.model<IIntegration>(
-    "integration",
+export const PRODUCTIVITY_INTEGRATION_MODEL = (mongoose_conn: typeof mongoose): Model<IIntegration> => mongoose_conn.model<IIntegration>(
+    "productivity collection",
     INTEGRATIONS_SCHEMA(mongoose_conn),
-    "integrations",
+    "productivity_integrations",
     {
         overwriteModels: false
     }
 );
+
+export const MUSIC_INTEGRATION_MODEL = (mongoose_conn: typeof mongoose): Model<IIntegration> => mongoose_conn.model<IIntegration>(
+    "music collection",
+    INTEGRATIONS_SCHEMA(mongoose_conn),
+    "music_integrations", 
+    {
+        overwriteModels: false,
+    }
+);
+
+//TODO: consider storing collection names & db names as env variables

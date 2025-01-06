@@ -33,7 +33,12 @@ const loadCSS = () => {
 
 //_ BACKEND REQUESTS
 const INTEGRATOR_INSTANCE = () => {
-    return axios.create({baseURL: process.env.EXPRESS_BACKEND_API_URL})
+
+    return axios.create({
+        baseURL: process.env.EXPRESS_BACKEND_API_URL,
+        validateStatus: (status) => status >= 200 && status <= 302,
+        params: {source: "desktop"}
+    });
 };
 
 

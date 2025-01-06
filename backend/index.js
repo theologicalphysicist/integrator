@@ -32,8 +32,8 @@ const app = Express();
 const INDEX_LOGGER = new Verbal("index", true, Framework.MORGAN);
 const STORE = MongoStore.create({
     mongoUrl: MONGODB_URL(process.env.MONGODB_USER, process.env.MONGODB_PASSWORD),
-    dbName: "sessions",
-    collectionName: "user_sessions",
+    dbName: process.env.DATABASE_NAME,
+    collectionName: process.env.SESSION_COLLECTION_NAME,
     stringify: false,
 });
 
@@ -210,6 +210,7 @@ app.get("/apple", async (req, res, next) => {
 });
 
 
+//_ ROUTERS
 //_ MONGODB
 app.get("/mongo_test", async (req, res) => {
     const CLIENT = await MONGODB_CLIENT(process.env.MONGODB_USER, process.env.MONGODB_PASSWORD);

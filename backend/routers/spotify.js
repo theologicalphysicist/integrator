@@ -21,6 +21,7 @@ const SPOTIFY_LOGGER = new Verbal("spotify");
 
 //_ MIDDLEWARE
 SPOTIFY_ROUTER.use((req, res, next) => {
+    SPOTIFY_LOGGER.debug({sessionID: req.session})
     if (!["/callback", "/spotify.html"].includes(req.path)) {
         
         if (!req.query.sessionID) next({ //* invalid request, no session id
@@ -31,13 +32,14 @@ SPOTIFY_ROUTER.use((req, res, next) => {
         req.sessionStore.get(req.query.sessionID, (err, sess) => {
             SPOTIFY_LOGGER.debug({err});
 
-            if (!sess) {
+            if (!sess || err) {
                 
                 next({ //* invalid request, bad session id
                     ...ERROR_MESSAGE(400),
                     details: "invalid session ID provided.",
                 });
             } else {
+                SPOTIFY_LOGGER.debug({sess});
 
                 req.currentSession = sess;
                 req.currentCookies = {
@@ -100,7 +102,7 @@ SPOTIFY_ROUTER.use("/resource", async (req, res, next) => {
 });
 
 
-SPOTIFY_ROUTER.use(Express.static("./public"));
+// SPOTIFY_ROUTER.use(Express.static("./public"));
 
 
 //_ ROUTES
@@ -122,9 +124,17 @@ SPOTIFY_ROUTER.get("/", async (req, res) => { //* TEST ROUTE
 //_ AUTH
 SPOTIFY_ROUTER.get("/authorization", async (req, res, next) => { //TODO: turn into /resource/authoriation, so that the token refresh is already done.
     SPOTIFY_LOGGER.debug({currentSession: req.currentSession.spotify});
+    SPOTIFY_LOGGER.debug({tests: {
+        "stringifyTest": JSON.stringify(req.currentSession.spotify) != "{}",
+        "typicalTest": req.currentSession.spotify != null,
+        "dictTest": req.currentSession.spotify != {},
+        "typeTest": req.currentSession.spotify != undefined,
+        "toKnow": !req.currentSession.spotify,
+    }});
+    SPOTIFY_LOGGER.debug({currentSession: req.currentSession.spotify});
     SPOTIFY_LOGGER.debug({sessionType: typeof req.currentSession.spotify});
 
-    if (JSON.stringify(req.currentSession.spotify) != "{}") {
+    if (req.currentSession.spotify) {
         //_ GET CURRENT TIME
         const NOW = Date.now();
 
@@ -360,6 +370,14 @@ SPOTIFY_ROUTER.post("/resource/playlist", async (req, res, next) => {
         });
 
 });
+
+
+SPOTIFY_ROUTER.post("/resource/playlists", async (req, res, next) => {
+
+
+
+});
+
 
 
 SPOTIFY_ROUTER.get("/resource/user", async (req, res, next) => {

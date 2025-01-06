@@ -14,7 +14,7 @@ import { ErrorResponse, GeneralResponse, IIntegration, ISession } from "../utils
 import { ERROR_CODES, ERROR_MESSAGE } from "../utils/error.js";
 import { wrapResponse } from "../utils/func.js";
 import { Verbal } from "../utils/logger.js";
-import { INTEGRATION } from "utils/db.js";
+import { PRODUCTIVITY_INTEGRATION_MODEL } from "utils/db.js";
 
 
 
@@ -247,6 +247,7 @@ export async function transferMusic(source: string, destination: string, session
                     error: ERROR_CODES.get(500),
                     details: "invalid destination. aborted."
                 }
+                INTEGRATIONS_LOGGER.error({error});
             };
         }
 
@@ -310,14 +311,13 @@ export async function transferMusic(source: string, destination: string, session
     };
 
     await get();
+    if (!error.present) await put();
+    if (!error.present) await store();
 
-    if (!error.present) {
-
-        await put();
-
-    };
-
-    return wrapResponse(error, data);
+    return {
+        error: {...error},
+        data
+    }
 };
 
 //TODO: an object for getting functions for each source, & same for putting

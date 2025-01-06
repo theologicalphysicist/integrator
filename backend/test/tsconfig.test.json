@@ -25,7 +25,7 @@
         // "moduleDetection": "auto",                        /* Control what method is used to detect module-format JS files. */
 
         //_ MODULES
-        "module": "CommonJS", /* Specify what module code is generated. */
+        "module": "ESNext", /* Specify what module code is generated. */
         "rootDir": "../", /* Specify the root folder within your source files. */
         "moduleResolution": "Node16", /* Specify how TypeScript looks up a file from a given module specifier. */
         "baseUrl": "../", /* Specify the base directory to resolve non-relative module names. */
@@ -113,4 +113,5 @@
         "../test/*.test.ts",
         "../public/apple_music.js"
     ],
+
 }

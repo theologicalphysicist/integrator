@@ -146,12 +146,13 @@ ipcMain.handle("fetch", async (event, url, request_data, query_params, verb) => 
                 error: err.code ?? "INTERNAL SERVER ERROR",
                 details: {
                     message: err.message,
-                    url: err.config?.url
+                    url: err.config?.url,
+                    stack: err.stack?.split("\n")
                 }
             },
             data: {}
         };
-        INTEGRATOR_LOGGER.error({response});
+        INTEGRATOR_LOGGER.error({response: response});
 
     });
 

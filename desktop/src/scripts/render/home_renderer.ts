@@ -142,6 +142,9 @@ const DataFetchFunctions = () => {
                 renderer.SpotifyAuth(AUTH_URL.data.authURL, localStorage.getItem("sessionID"));
             } else if (AUTH_URL.data.tokensValid) {
                 location.href = "../pages/data.html";
+            } else {
+                //@ts-ignore
+                renderer.log("FAILED TO AUTH", "ERROR");
             }
 
 
