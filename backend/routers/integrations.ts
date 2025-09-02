@@ -79,6 +79,11 @@ INTEGRATIONS_ROUTER.use("/transfer", async (req: Request & Partial<IRequest>, re
 
 
 //_ ROUTES
+INTEGRATIONS_ROUTER.post("/test", async (req: Request & Partial<IRequest>, res: Response, next: NextFunction) => {
+
+    
+
+});
 // INTEGRATIONS_ROUTER.post("/transfer/create", async (req: Request & Partial<IRequest>, res: Response, next: NextFunction) => {
 //     INTEGRATIONS_LOGGER.log(JSON.stringify(req.queryParameters?.integrations, null, 4));
 //     INTEGRATIONS_LOGGER.log(JSON.stringify({values: Object.values(TransferType)}, null, 4));

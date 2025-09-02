@@ -42,7 +42,7 @@
     "mongodb": "6.0",
     "mongoose": "^8.0.3",
     "morgan": "^1.10.0",
-    "octokit": "^2.0.14",
+    "octokit": "^2.1.0",
     "project-name": "^1.0.0",
     "query-string": "^8.1.0",
     "uuid": "^9.0.0"

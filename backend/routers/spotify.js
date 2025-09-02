@@ -4,7 +4,7 @@ import queryString from "query-string";
 import EventEmitter from "node:events";
 
 //_ LOCAL
-import { getAuthCode, refreshToken, getPlaylists, createPlaylist, querySong } from "../apis/media/spotify.js";
+import { getAuthCode, refreshToken, getPlaylists, createPlaylists, querySong } from "../apis/media/spotify.js";
 import { getAppleMusicPlaylist } from "../apis/media/applemusic.js"; //! REMEMBER THIS IS TEMPORARY
 
 import { SPOTIFY_ACCOUNTS_INSTANCE, SPOTIFY_API_INSTANCE } from "../apis/clients.js";
@@ -21,7 +21,8 @@ const SPOTIFY_LOGGER = new Verbal("spotify");
 
 //_ MIDDLEWARE
 SPOTIFY_ROUTER.use((req, res, next) => {
-    SPOTIFY_LOGGER.debug({sessionID: req.session})
+    SPOTIFY_LOGGER.debug({sessionID: req.session});
+
     if (!["/callback", "/spotify.html"].includes(req.path)) {
         
         if (!req.query.sessionID) next({ //* invalid request, no session id
@@ -31,6 +32,7 @@ SPOTIFY_ROUTER.use((req, res, next) => {
 
         req.sessionStore.get(req.query.sessionID, (err, sess) => {
             SPOTIFY_LOGGER.debug({err});
+            SPOTIFY_LOGGER.debug({sess});
 
             if (!sess || err) {
                 
@@ -330,12 +332,14 @@ SPOTIFY_ROUTER.get("/resource/playlists", async (req, res, next) => {
         SPOTIFY_API_INSTANCE(token_type, access_token),
         SPOTIFY_LOGGER
     ).then((spotify_res) => {
+        SPOTIFY_LOGGER.debug({err: spotify_res.error});
         
         if (spotify_res.error.present) next(spotify_res.error);
 
         res.status(200).json(spotify_res.data)
     }).catch((err) => {
         SPOTIFY_LOGGER.error({err});
+        SPOTIFY_LOGGER.error("HERE");
 
         next(ERROR_MESSAGE(500, err.toString()));
     });
@@ -352,7 +356,7 @@ SPOTIFY_ROUTER.post("/resource/playlist", async (req, res, next) => {
         details: `please provide required request parameters.`
     });
 
-    await createPlaylist(SPOTIFY_API_INSTANCE(token_type, access_token), process.env.SPOTIFY_USER_ID, "TESTER", "TEST PLAYLIST FROM INTEGRATOR")
+    await createPlaylists(SPOTIFY_API_INSTANCE(token_type, access_token), process.env.SPOTIFY_USER_ID, "TESTER", "TEST PLAYLIST FROM INTEGRATOR")
         .then((spotify_res) => {
 
             if (spotify_res.error.present) throw new Error(JSON.stringify(spotify_res.error)) ;
@@ -384,7 +388,7 @@ SPOTIFY_ROUTER.get("/resource/user", async (req, res, next) => {
     let token_type = req.currentSession.spotify.tokenType;
     let access_token = req.currentSession.spotify.accessToken;
 
-    await createPlaylist(
+    await createPlaylists(
         SPOTIFY_API_INSTANCE(token_type, access_token), 
         process.env.SPOTIFY_USER_ID, 
         "TESTER", 

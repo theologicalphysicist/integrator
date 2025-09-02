@@ -1,34 +1,38 @@
-
 const TableHead = (headers) => {
     let rows = "";
+
     for (const H of headers) {
         rows += `<th>${H}</th>`;
     }
     console.log(rows);
+
     return (`
             <tr>
                 ${rows}
             </tr>
     `);
-};
+}
 
 
 //TODO: Refactor to use 1 set of functions for all data fetched
 const TableBodyRow = (data, rC) => {
     let rows = "";
+
     for (const d of data) {
         console.log(d);
         rows += `
             ${d}
         `;
     }
+
     return `
         ${rows}
-    `;
-};
+    `
+}
 
 
 const SpotifyPlaylistTile = (playlist_datum, tile_class) => {
+
     return (`
         <div class=${tile_class}>
             <img 
@@ -40,12 +44,13 @@ const SpotifyPlaylistTile = (playlist_datum, tile_class) => {
             <h2>${playlist_datum.name} by ${playlist_datum.ownerName}</h2>
             <p>Number of songs = ${playlist_datum.length}</p>
         </div>
-    `)
-};
+    `);
+}
 
 
 export const SpotifyPlaylistGrid = (playlist_data, grid_id) => {
     let playlist_tiles = "";
+
     while (playlist_data.length > 0) {
         if (playlist_data.length > 1) {
             playlist_tiles += `
@@ -62,15 +67,17 @@ export const SpotifyPlaylistGrid = (playlist_data, grid_id) => {
             `;
         }
     }
+
     return `
         <div id=${grid_id}>
             ${playlist_tiles}
         </div>
     `;
-};
+}
 
 
 const DataTable = (tableID, rowClass, data) => {
+    
     return (`
         <table id=${tableID}>
             <thead>
@@ -81,22 +88,23 @@ const DataTable = (tableID, rowClass, data) => {
             </tbody>
         </table>
     `);
-};
-
+}
 
 //_ NOTION
 const NotionDBTile = (database_datum) => {
+
     return (`
         <div class="database-tile">
             <h2><a href=${database_datum.url} target="_blank">${database_datum.title}</a></h2>
             <p>${Object.keys(database_datum.properties)}</p>
         </div>
     `);
-};
+}
 
 
 export const NotionDBGrid = (database_data, grid_id) => {
     let database_tiles = "";
+    
     while (database_data.length > 0) {
         if (database_data.length > 1) {
             database_tiles += `
@@ -119,7 +127,7 @@ export const NotionDBGrid = (database_data, grid_id) => {
             ${database_tiles}
         </div>
     `);
-};
+}
 
 
 //_ GITHUB
@@ -133,7 +141,8 @@ const GitHubLanuagesSpan = (repo_languages, repo_name) => {
     });
 
     return language_spans;
-};
+}
+
 
 const GithubLanguagesImage = (repo_languages, repo_name) => {
     return `
@@ -141,7 +150,7 @@ const GithubLanguagesImage = (repo_languages, repo_name) => {
             ${GitHubLanuagesSpan(repo_languages, repo_name)}
         </div>
     `;
-};
+}
 
 
 const GithubDataTile = (datum, repo_languages, repo_name) => {
@@ -156,7 +165,7 @@ const GithubDataTile = (datum, repo_languages, repo_name) => {
             <p>Open Issues: ${datum.numberOfOpenIssues}</p>
         </div>
     `;
-};
+}
 
 
 export const GithubDataGrid = (data, grid_id, repo_languages) => {
@@ -184,4 +193,4 @@ export const GithubDataGrid = (data, grid_id, repo_languages) => {
             ${tiles}
         </div>
     `;
-};
+}

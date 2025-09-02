@@ -22,6 +22,9 @@ if (renderer) { //* if electron desktop instead of web frontend
     //@ts-ignore
     renderer.LeaveApp((event: any) => {
 
+        //@ts-ignore
+        renderer.log("CLOSING", "DEBUG");
+
         localStorage.clear();
 
     });
@@ -57,9 +60,17 @@ if (renderer) { //* if electron desktop instead of web frontend
         console.log({res});
 
         localStorage.clear();
-        localStorage.setItem("sessionID", PREVIOUS_SESSION_ID ?? res.id);
+        localStorage.setItem("sessionID", res.id ?? PREVIOUS_SESSION_ID);
         localStorage.setItem("cookies", JSON.stringify(res.cookies));
 
+    }); 
+
+    //@ts-ignore
+    renderer.sendSessionID((event: any) => {
+        const SESSION_ID: string | null = localStorage.getItem("sessionID");
+        console.log({SESSION_ID});
+        //@ts-ignore
+        renderer.retrieveSessionID(localStorage.getItem("sessionID")); 
     });
 
 };
@@ -136,10 +147,10 @@ const DataFetchFunctions = () => {
             renderer.log(AUTH_URL.data, "INFO");
             console.log(JSON.stringify({data: AUTH_URL.data}));
 
-            localStorage.setItem("recentFetch", "SPOTIFY");
             if (AUTH_URL.data.authURL) {
                 //@ts-ignore
                 renderer.SpotifyAuth(AUTH_URL.data.authURL, localStorage.getItem("sessionID"));
+                localStorage.setItem("recentFetch", "SPOTIFY");
             } else if (AUTH_URL.data.tokensValid) {
                 location.href = "../pages/data.html";
             } else {

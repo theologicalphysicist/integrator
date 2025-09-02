@@ -98,42 +98,42 @@ const DataPageRender = async () => {
 
     console.log(localStorage.getItem("recentFetch"));
 
-    // switch (localStorage.getItem("recentFetch")) {
+    switch (localStorage.getItem("recentFetch")) {
 
-    //     case "SPOTIFY":
+        case "SPOTIFY":
 
-    //         LoadSpotifyData();
+            LoadSpotifyData();
 
-    //         break;
+            break;
 
-    //     case "NOTION":
+        // case "NOTION":
 
-    //         fetched = JSON.parse(localStorage.getItem("NotionFetchData"));
-    //         if (fetched) LOAD_DATA_AREA.innerHTML = NotionDBGrid(fetched, "database_grid");
+        //     fetched = JSON.parse(localStorage.getItem("NotionFetchData"));
+        //     if (fetched) LOAD_DATA_AREA.innerHTML = NotionDBGrid(fetched, "database_grid");
 
-    //         break;
+        //     break;
 
-    //     case "GITHUB": //TODO: REFACTOR THIS!
+        // case "GITHUB": //TODO: REFACTOR THIS!
 
-    //         fetched = JSON.parse(localStorage.getItem("GithubFetchData"));
+        //     fetched = JSON.parse(localStorage.getItem("GithubFetchData"));
 
-    //         const REPO_NAMES = fetched.map((f) => f.repoName);
-    //         const REPO_LANGUAGES = await loadGithubRepositoryData(REPO_NAMES);
-    //         LOAD_DATA_AREA.innerHTML = fetched ? GithubDataGrid(fetched, "database_grid", REPO_LANGUAGES) : null;
+        //     const REPO_NAMES = fetched.map((f) => f.repoName);
+        //     const REPO_LANGUAGES = await loadGithubRepositoryData(REPO_NAMES);
+        //     LOAD_DATA_AREA.innerHTML = fetched ? GithubDataGrid(fetched, "database_grid", REPO_LANGUAGES) : null;
 
-    //         //_ SET LANGUAGE IMAGE OF REPOSITORY
-    //         for (const REPO in REPO_LANGUAGES) {
-    //             for (const LANGS in REPO_LANGUAGES[REPO]) {
-    //                 const TOTAL = sum(Object.values(REPO_LANGUAGES[REPO]));
-    //                 const CURRENT_SPAN = document.getElementById(`${REPO}_${LANGS}`);
+        //     //_ SET LANGUAGE IMAGE OF REPOSITORY
+        //     for (const REPO in REPO_LANGUAGES) {
+        //         for (const LANGS in REPO_LANGUAGES[REPO]) {
+        //             const TOTAL = sum(Object.values(REPO_LANGUAGES[REPO]));
+        //             const CURRENT_SPAN = document.getElementById(`${REPO}_${LANGS}`);
 
-    //                 CURRENT_SPAN.style.backgroundColor = LANGUAGE_COLOURS[LANGS];
-    //                 CURRENT_SPAN.style.width = ((REPO_LANGUAGES[REPO][LANGS] / TOTAL) * 100) + "%";
-    //             }
-    //         };
+        //             CURRENT_SPAN.style.backgroundColor = LANGUAGE_COLOURS[LANGS];
+        //             CURRENT_SPAN.style.width = ((REPO_LANGUAGES[REPO][LANGS] / TOTAL) * 100) + "%";
+        //         }
+        //     };
 
-    //         break;
-    // };
+        //     break;
+    };
 
 };
 

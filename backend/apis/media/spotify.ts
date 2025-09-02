@@ -90,10 +90,11 @@ export const getPlaylists = async (spotify_api_client: AxiosInstance, logger: Ve
         let formatted_res = [];
 
         for (const PLAYLIST of res) {
+            logger.debug(PLAYLIST);
             //* if not my playist
             //* to be varied later for a general user, using query params
             PLAYLIST.owner.display_name === "gauss" ? formatted_res.push({
-                imageURL: PLAYLIST.images[0].url,
+                imageURL: PLAYLIST.images ? PLAYLIST.images[0].url : "",
                 name: PLAYLIST.name,
                 ownerName: PLAYLIST.owner.display_name,
                 length: PLAYLIST.tracks.total,
@@ -111,18 +112,23 @@ export const getPlaylists = async (spotify_api_client: AxiosInstance, logger: Ve
             url: "/me/playlists",
             params: playlist_params,
         }).then((playlist_res: AxiosResponse) => { 
-            logger.log(playlist_res.data);
+            // logger.log(playlist_res.data);
 
             data = [...data, ...ProcessPlaylists(playlist_res.data.items)];
+            logger.debug(data.length);
 
-            if (playlist_res.data.next == null) {
+            if (!playlist_res.data.next) {
+                logger.debug("DONE");
                 finished = true;
             } else {
-                playlist_params.offset = queryString.parseUrl(playlist_res.data.next).query.offset?.toString();
+                logger.debug("NEXT");
+                logger.debug({offset: queryString.parseUrl(playlist_res.data.next).query.offset});
+                playlist_params.offset = `${queryString.parseUrl(playlist_res.data.next).query.offset}`;
             };
 
-        }).catch((err: AxiosError) => {
-            logger.error(err.toJSON());
+        }).catch((err) => {
+            logger.error("IN CATCH");
+            logger.error({err});
 
             error = {
                 present: true,
@@ -134,40 +140,45 @@ export const getPlaylists = async (spotify_api_client: AxiosInstance, logger: Ve
         });
     };
 
-    return wrapResponse(error, data);
+    return {error: error, data: data};
 };
 
 
-export async function createPlaylist(api_client: AxiosInstance, user_id: string, playlist_name: string, logger: Verbal, playlist_desc?: string): Promise<GeneralResponse> {
+export async function createPlaylists(api_client: AxiosInstance, user_id: string, logger: Verbal, playlists: Playlist[]): Promise<GeneralResponse> {
     let error: ErrorResponse = {
         present: false,
         details: null
     };
-    let data: any = {};
+    let data: any[] = [];
 
-    await api_client.request({
-        method: "POST",
-        url: `/users/${user_id}/playlists`,
-        data: {
-            name: playlist_name,
-            description: playlist_desc,
-            public: false
-        }
-    }).then((playlist_res: AxiosResponse) => {
+    for (const PLAYLIST of playlists) {
 
-        logger.info(playlist_res.data);
+        await api_client.request({
+            method: "POST",
+            url: `/users/${user_id}/playlists`,
+            data: {
+                name: PLAYLIST.name,
+                description: PLAYLIST.description ?? "",
+                public: false
+            }
+        }).then((playlist_res: AxiosResponse) => {
 
-        data = playlist_res.data;
+            logger.info(playlist_res.data);
 
-    }).catch((err: any) => {
-        logger.error({err});
+            data = playlist_res.data;
 
-        error = {
-            present: true,
-            ...formatAxiosError(err)
-        };
+        }).catch((err: any) => {
+            logger.error({err});
 
-    });
+            error = {
+                present: true,
+                ...formatAxiosError({err})
+            };
+
+        });
+
+    }
+
 
     return wrapResponse(error, data);
 };

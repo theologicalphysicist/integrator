@@ -8,7 +8,7 @@ import { MONGODB_CLIENT, SPOTIFY_ACCOUNTS_INSTANCE, SPOTIFY_API_INSTANCE } from 
 import { check } from "./mongo.js";
 
 import { getAppleMusicPlaylist } from "./media/applemusic.js";
-import { createPlaylist as createSpotifyPlaylist, refreshToken } from "./media/spotify.js";
+import { createPlaylists, refreshToken } from "./media/spotify.js";
 
 import { ErrorResponse, GeneralResponse, IIntegration, ISession } from "../utils/types.js";
 import { ERROR_CODES, ERROR_MESSAGE } from "../utils/error.js";
@@ -88,7 +88,7 @@ export async function transferMusic(source: string, destination: string, session
 
                     source_data = apple_music_res.data;
 
-                    INTEGRATIONS_LOGGER.log("APPLE MUSIC DATA FOUND");
+                    INTEGRATIONS_LOGGER.debug("APPLE MUSIC DATA FOUND");
 
                 }).catch((err: any) => {
                     INTEGRATIONS_LOGGER.error({err});
@@ -191,11 +191,11 @@ export async function transferMusic(source: string, destination: string, session
 
                     source_data.forEach(async (s_d: any) => { //TODO: check if playlist exists first, if so, then ignore unless transferring songs, then just merge songs.
 
-                        await createSpotifyPlaylist(
+                        await createPlaylists(
                             SPOTIFY_API_INSTANCE(spotify_tokens.tokenType, spotify_tokens.accessToken), 
                             `${process.env.SPOTIFY_USER_ID}`, 
-                            s_d, 
-                            INTEGRATIONS_LOGGER
+                            INTEGRATIONS_LOGGER,
+                            s_d
                         ).then((spotify_res: GeneralResponse) => {
 
                             if (spotify_res.error.present) throw new Error(JSON.stringify(spotify_res.error.details))
@@ -259,7 +259,6 @@ export async function transferMusic(source: string, destination: string, session
             source: source,
             destination: destination,
             lastSync: Date.now(),
-            type: "music",
             data: {
                 transferred: items
             },

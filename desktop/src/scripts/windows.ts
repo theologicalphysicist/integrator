@@ -29,7 +29,7 @@ export const MainWindow = () => {
 };
 
 
-export function AuthWindow(page_url: string, main_window: BrowserWindow) {
+export const AuthWindow = (page_url: string, main_window: BrowserWindow) => {
     const AUTH_WINDOW = new BrowserWindow({
         width: 800,
         height: 600,

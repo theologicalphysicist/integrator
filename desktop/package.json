@@ -10,7 +10,7 @@
         "predev": "rm -r dist && mkdir dist && cd ./src/styles && sass ./scss/data/data.scss ./data.css && sass ./scss/integration/integration.scss ./integration.css && sass ./scss/home/home.scss ./home.css",
         "build": "npx tsc --project . && npx tsc --project src/scripts && npx tsc --project src/scripts/render",
         "postbuild": "cp -r src/pages src/styles dist/src && cp -r public .env* dist && rm -r dist/src/styles/scss",
-        "dev": "nodemon -x 'npm run build && NODE_ENV=development electronmon --trace-warnings dist/index.js'",
+        "dev": "nodemon -x 'npm run build && NODE_ENV=development electronmon dist/index.js'",
         "package": "electron-forge package",
         "make": "electron-forge make"
     },

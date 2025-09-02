@@ -78,12 +78,11 @@ app.get("/", (req, res) => {
 
 app.get("/init", async (req, res, next) => {
     const COOKIE_ID = generateRandomString(7);
-    INDEX_LOGGER.debug({query: req.query});
 
     if (req.query.sessionID) {
 
         req.sessionStore.get(req.query.sessionID, (err, session) => {
-            INDEX_LOGGER.debug({"GET ERROR": err, "BOOL CHECK": Boolean(err)});
+            INDEX_LOGGER.debug({err});
             INDEX_LOGGER.debug({session});
 
             if (err) {
@@ -96,23 +95,23 @@ app.get("/init", async (req, res, next) => {
 
                         next({...ERROR_MESSAGE(500), details: err});
                     }
+                    res
+                        .cookie("test", JSON.stringify({
+                                ...req.session.cookie,
+                                cookieID: COOKIE_ID
+                            })
+                        )
+                        .json({
+                            result: true,
+                            message: "SESSION INITIALISED",
+                            id: req.session.id,
+                            cookies: {
+                                ...req.session.cookie,
+                                cookieID: COOKIE_ID
+                            }
+                        });
                 });
 
-                res
-                    .cookie("test", JSON.stringify({
-                            ...req.session.cookie,
-                            cookieID: COOKIE_ID
-                        })
-                    )
-                    .json({
-                        result: true,
-                        message: "SESSION INITIALISED",
-                        id: req.session.id,
-                        cookies: {
-                            ...req.session.cookie,
-                            cookieID: COOKIE_ID
-                        }
-                    });
 
             } else {
 
@@ -156,13 +155,13 @@ app.get("/init", async (req, res, next) => {
 });
 
 
-app.get("/exit", async (req, res) => {
+app.get("/exit", async (req, res, next) => {
     INDEX_LOGGER.info(req.session.id);
     
     req.sessionStore.destroy(req.query.sessionID, (err) => {
         if (err) {
-            INDEX_LOGGER.error(`ERROR: ${err}`);
-            res.send("ERROR");
+            INDEX_LOGGER.error({err});
+            next(err);
         } else {
             res.send("SUCCESS");
         };

@@ -37,34 +37,58 @@ const INTEGRATOR_LOGGER = new Verbal("🔌INTEGRATOR DESKTOP🔌");
 
 //_ APP MAINTENANCE
 app.on("ready", async () => {
-    INTEGRATOR_LOGGER.debug({"TEST SESSION ID": process.env.TEST_SESSION_ID});
-    
-    const INIT_CONFIG: any = {
-        url: "/init",
-        method: "GET",
-        params: {
-            sessionID: process.env.TEST_SESSION_ID ?? null
-        }
-    };
-
     MAIN_WINDOW = MainWindow();
-    await MAIN_WINDOW.loadFile("./src/pages/index.html");
 
-    await INTEGRATOR_INSTANCE().request(
-        INIT_CONFIG
-    ).then((res: AxiosResponse) => {
-        INTEGRATOR_LOGGER.info("INITIALIZED, STARTING");
-        INTEGRATOR_LOGGER.debug({"response": res.data});
+    await MAIN_WINDOW.loadFile(
+        "./src/pages/index.html",
+        {}
+    ).then(async () => {
 
-        MAIN_WINDOW.show();
+        function getSessionID() {
 
-        MAIN_WINDOW.webContents.send("init", {
-            ...res.data
+            return new Promise((resolve, reject) => {
+
+                MAIN_WINDOW.webContents.send("send-session-id");
+                ipcMain.on("retrieve-session-id", (event, value) => {
+                    INTEGRATOR_LOGGER.debug({event});
+                    INTEGRATOR_LOGGER.debug({value});
+
+                    resolve(value);
+                });
+
+            });
+        }
+        
+        await getSessionID().then(async (session_id: any) => {
+            INTEGRATOR_LOGGER.debug({session_id});
+            
+            const INIT_CONFIG: any = {
+                url: "/init",
+                method: "GET",
+                params: {
+                    sessionID: session_id ?? null
+                }
+            };
+
+
+            await INTEGRATOR_INSTANCE().request(
+                INIT_CONFIG
+            ).then((res: AxiosResponse) => {
+                INTEGRATOR_LOGGER.info("INITIALIZED, STARTING");
+
+                MAIN_WINDOW.show();
+
+                MAIN_WINDOW.webContents.send("init", {
+                    ...res.data
+                });
+            }).catch((err: AxiosError) => {
+                INTEGRATOR_LOGGER.error(`${err}`);
+
+            });
+
         });
-    }).catch((err: AxiosError) => {
-        INTEGRATOR_LOGGER.error(`${err}`);
-
     });
+
 
 });
 
@@ -78,6 +102,9 @@ app.on("window-all-closed", () => {
 
 //_ IPC EVENT HANDLERS
 ipcMain.on("SpotifyAuth", async (event, page_url, session_id) => {
+
+    const SPOTIFY_AUTH_WINDOW: BrowserWindow = AuthWindow(page_url, MAIN_WINDOW);
+    SPOTIFY_AUTH_WINDOW.show();
 
     await INTEGRATOR_INSTANCE().request({
         url: `${process.env.EXPRESS_BACKEND_API_URL}/spotify/tokens`,

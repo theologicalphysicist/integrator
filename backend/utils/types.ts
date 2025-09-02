@@ -73,6 +73,7 @@ export interface PlaylistParameters {
 export interface Playlist {
     imageURL?: string,
     name: string,
+    description?: string,
     ownerName?: string,
     length: number,
     type?: string,

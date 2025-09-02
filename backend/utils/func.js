@@ -37,7 +37,7 @@ export function wrapResponse(error, res_data) {
 
 export function formatAxiosError(error_obj) {
     const REQUEST_CONFIG = {
-        url: error_obj.config.baseURL + error_obj.config.url,
+        url: error_obj.config.baseURL || "" + error_obj.config.url,
         responseType: error_obj.config.responseType.toUpperCase(),
         method: error_obj.config.method.toUpperCase(),
         params: error_obj.config.params

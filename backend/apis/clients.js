@@ -38,8 +38,10 @@ export const MONGODB_CLIENT = async (username, password) => {
     try {
         await CLIENT.connect();
         CLIENTS_LOGGER.log(`connected to database`);
+
     } catch (err) {
-        CLIENTS_LOGGER.error(`ERROR: ${err}`);
+        CLIENTS_LOGGER.error(err);
+        
     };
 
     return CLIENT;
